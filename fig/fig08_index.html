@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>指数は高さの和</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第8章：30面体の頂点を前の本の指数で塗り、高さの和ごとに並べ直す（1・5・10・10・5・1） */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd; --edge:#8d948f;
+  --i0:#1e2724; --i1:#e0b030; --i2:#1f5fa8; --i3:#b0452a; --i4:#3d7d4f;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --edge:#5f6863; --i0:#e6ebe7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --edge:#5f6863; --i0:#e6ebe7; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--i2);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;vertical-align:-.05em;margin-right:.15em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>指数は高さの和</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体の頂点32個を前の本の指数で塗り、e1からe5の係数の和ごとに並べ直すと1・5・10・10・5・1になる図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div></div>
+  </div>
+  <p>30 面体の頂点 32 個を、真上から見た影の番地の指数（前の本の a0 − a1 + a2 − a3 を 5 で割った余り）で塗りました。<span class="dot" style="background:var(--i0)"></span>0、<span class="dot" style="background:var(--i1)"></span>1、<span class="dot" style="background:var(--i2)"></span>2、<span class="dot" style="background:var(--i3)"></span>3、<span class="dot" style="background:var(--i4)"></span>4 です。</p>
+  <p>頂点を、e1〜e5 の係数の和（−5、−3、−1、1、3、5）ごとの行に並べ直すと、同じ行の頂点はすべて同じ色になり、行の頂点の数は 1・5・10・10・5・1 です。指数は、高さの和を 5 で割った余りそのものです。</p>
+  <p class="note">指数と高さの和はすべて整数で計算しています。画面の座標に直す最後の一回だけ、観察者側の表示として実数を使っています。</p>
+</div>
+<script>
+const D={"V":[[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,1],[-1,-1,-1,-1,1,-1],[-1,-1,-1,-1,1,1],[-1,-1,-1,1,-1,-1],[-1,-1,-1,1,1,-1],[-1,-1,-1,1,1,1],[-1,-1,1,-1,-1,-1],[-1,-1,1,1,-1,-1],[-1,-1,1,1,1,-1],[-1,1,-1,-1,-1,-1],[-1,1,-1,-1,-1,1],[-1,1,-1,-1,1,1],[-1,1,1,-1,-1,-1],[-1,1,1,-1,-1,1],[-1,1,1,1,-1,-1],[1,-1,-1,-1,1,1],[1,-1,-1,1,1,-1],[1,-1,-1,1,1,1],[1,-1,1,1,-1,-1],[1,-1,1,1,1,-1],[1,-1,1,1,1,1],[1,1,-1,-1,-1,1],[1,1,-1,-1,1,1],[1,1,-1,1,1,1],[1,1,1,-1,-1,-1],[1,1,1,-1,-1,1],[1,1,1,-1,1,1],[1,1,1,1,-1,-1],[1,1,1,1,-1,1],[1,1,1,1,1,-1],[1,1,1,1,1,1]],"E":[[0,10],[0,7],[0,4],[0,2],[0,1],[1,11],[1,3],[2,5],[2,3],[3,16],[3,12],[3,6],[4,8],[4,5],[5,17],[5,9],[5,6],[6,18],[7,13],[7,8],[8,19],[8,15],[8,9],[9,20],[10,13],[10,11],[11,22],[11,14],[11,12],[12,23],[13,25],[13,15],[13,14],[14,26],[15,28],[16,23],[16,18],[17,20],[17,18],[18,24],[18,21],[19,28],[19,20],[20,30],[20,21],[21,31],[22,26],[22,23],[23,27],[23,24],[24,31],[25,28],[25,26],[26,29],[26,27],[27,31],[28,30],[28,29],[29,31],[30,31]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tA=Math.atan(2);
+const AX=[[0,0,1]];for(let k=1;k<=5;k++){const a=2*Math.PI*k/5;AX.push([Math.sin(tA)*Math.cos(a),Math.sin(tA)*Math.sin(a),Math.cos(tA)]);}
+const P=D.V.map(s=>[0,1,2].map(j=>s.reduce((acc,x,i)=>acc+x*AX[i][j]/2,0)));
+const SUM=D.V.map(s=>s.slice(1).reduce((a,b)=>a+b,0));
+const IDX=SUM.map(s=>((s%5)+5)%5);
+// 並べ直した位置
+const ROW={};const TGT=[];D.V.forEach((v,i)=>{(ROW[SUM[i]]=ROW[SUM[i]]||[]).push(i);});
+Object.entries(ROW).forEach(([s,ids])=>{ids.forEach((i,k)=>{TGT[i]=[500+(k-(ids.length-1)/2)*78,840-(Number(s)+5)/2*125];});});
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+const PH=[[7,"30 面体の頂点を指数で塗る"],[3,"高さの和ごとに並べ直す"],[6,"1・5・10・10・5・1"],[3,"もとへ"]];const TOT=PH.reduce((s,p)=>s+p[0],0);
+const sm=x=>x*x*(3-2*x);
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const f=Math.min(1,u/PH[i][0]);
+  const m=i===0?0:i===1?sm(f):i===2?1:1-sm(f);
+  const V=view(14,-30-50*(i===0?f:1));const S=270;
+  const Q=P.map(V);const XY=Q.map((q,k)=>{const a=[500+S*q[0],480-S*q[1]];return[a[0]*(1-m)+TGT[k][0]*m,a[1]*(1-m)+TGT[k][1]*m];});
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  ctx.globalAlpha=1-m;ctx.lineWidth=2;ctx.strokeStyle=css("--edge");
+  for(const [a,b] of D.E){ctx.beginPath();ctx.moveTo(...XY[a]);ctx.lineTo(...XY[b]);ctx.stroke();}
+  ctx.globalAlpha=m;ctx.font="600 30px "+css("--mono");ctx.fillStyle=css("--muted");ctx.textAlign="left";
+  [-5,-3,-1,1,3,5].forEach(s=>{const y=840-(s+5)/2*125;ctx.fillText((s>0?"+":"")+s,40,y+10);ctx.textAlign="right";ctx.fillText(String(ROW[s].length)+" 個",975,y+10);ctx.textAlign="left";});
+  ctx.globalAlpha=1;
+  const ord=[...Q.keys()].sort((a,b)=>Q[a][2]-Q[b][2]);
+  for(const k of ord){ctx.beginPath();ctx.arc(XY[k][0],XY[k][1],20,0,7);ctx.fillStyle=css("--i"+IDX[k]);ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=css("--ink");ctx.stroke();}
+  document.getElementById("ph").textContent=PH[i][1];}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?12:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

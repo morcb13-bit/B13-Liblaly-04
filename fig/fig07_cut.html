@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>立体を切る</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第7章：30面体の輪を水平に切っていき、真ん中で五角形10枚の円環が現れる。続いて30面体1個を三つの軸で切る */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --c0:#e0b030; --c1:#1f5fa8; --c2:#b0452a; --c3:#3d7d4f; --c4:#ffffff; --edge:#39443f;
+  --solid:#cfd3cc; --plane:#b0452a;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; --solid:#4a524e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; --solid:#4a524e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px;min-width:0}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>立体を切る</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体の輪を下から上へ水平に切り、真ん中で五角形10枚の円環が現れる図。続いて30面体1個を五回軸・三回軸・二回軸に垂直な平面で切る"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv"><div><span>切る向き</span><b id="ax">—</b></div><div><span>切り口</span><b id="cut">—</b></div></div>
+  </div>
+  <p>はじめに、30 面体 10 個の輪を、真上の軸に垂直な平面で下から上へ切っていきます。切り口は五角形か十角形で、ちょうど真ん中の高さで、五角形 10 枚が辺を共有した前の本の円環になります。色は前の本と同じく番地 k を 5 で割った余りです。</p>
+  <p>続いて 30 面体 1 個を、五回軸・三回軸・二回軸のそれぞれに垂直な平面で切ります。下から上へ、切り口の角の数は、五回軸で 5・10・15・10・15・10・5、三回軸で 3・12・9・15・12・15・9・12・3、二回軸で 8・10・12・12・10・8 と変わります。</p>
+  <p class="note">切り口の角の数と真ん中の頂点の番地は、整数の組で数えて照合しています。切り口の形を画面に描くところだけ、観察者側の表示として実数を使っています。</p>
+</div>
+<script>
+const D={"SIG":[[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,1],[-1,-1,-1,-1,1,-1],[-1,-1,-1,-1,1,1],[-1,-1,-1,1,-1,-1],[-1,-1,-1,1,1,-1],[-1,-1,-1,1,1,1],[-1,-1,1,-1,-1,-1],[-1,-1,1,1,-1,-1],[-1,-1,1,1,1,-1],[-1,1,-1,-1,-1,-1],[-1,1,-1,-1,-1,1],[-1,1,-1,-1,1,1],[-1,1,1,-1,-1,-1],[-1,1,1,-1,-1,1],[-1,1,1,1,-1,-1],[1,-1,-1,-1,1,1],[1,-1,-1,1,1,-1],[1,-1,-1,1,1,1],[1,-1,1,1,-1,-1],[1,-1,1,1,1,-1],[1,-1,1,1,1,1],[1,1,-1,-1,-1,1],[1,1,-1,-1,1,1],[1,1,-1,1,1,1],[1,1,1,-1,-1,-1],[1,1,1,-1,-1,1],[1,1,1,-1,1,1],[1,1,1,1,-1,-1],[1,1,1,1,-1,1],[1,1,1,1,1,-1],[1,1,1,1,1,1]],"E":[[0,10],[0,7],[0,4],[0,2],[0,1],[1,11],[1,3],[2,5],[2,3],[3,16],[3,12],[3,6],[4,8],[4,5],[5,17],[5,9],[5,6],[6,18],[7,13],[7,8],[8,19],[8,15],[8,9],[9,20],[10,13],[10,11],[11,22],[11,14],[11,12],[12,23],[13,25],[13,15],[13,14],[14,26],[15,28],[16,23],[16,18],[17,20],[17,18],[18,24],[18,21],[19,28],[19,20],[20,30],[20,21],[21,31],[22,26],[22,23],[23,27],[23,24],[24,31],[25,28],[25,26],[26,29],[26,27],[27,31],[28,30],[28,29],[29,31],[30,31]],"F":[[0,10,13,7],[0,10,11,1],[0,7,8,4],[0,4,5,2],[0,2,3,1],[1,11,12,3],[2,5,6,3],[3,16,23,12],[3,16,18,6],[4,8,9,5],[5,17,20,9],[5,17,18,6],[7,13,15,8],[8,19,28,15],[8,19,20,9],[10,13,14,11],[11,22,26,14],[11,22,23,12],[13,25,28,15],[13,25,26,14],[16,23,24,18],[17,20,21,18],[18,24,31,21],[19,28,30,20],[20,30,31,21],[22,26,27,23],[23,27,31,24],[25,28,29,26],[26,29,31,27],[28,30,31,29]],"C":[[1,1,-1,-1,1,3],[-1,1,-1,-3,-1,1],[1,3,1,-1,-1,1],[-1,1,1,-1,-3,-1],[1,1,3,1,-1,-1],[-1,-1,1,1,-1,-3],[1,-1,1,3,1,-1],[-1,-3,-1,1,1,-1],[1,-1,-1,1,3,1],[-1,-1,-3,-1,1,1]],"N3":[-1,-1,-1,-1,-1,1],"N2":[-4,0,0,-4,-4,-4]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tA=Math.atan(2);
+const AX=[[0,0,1]];for(let k=1;k<=5;k++){const a=2*Math.PI*k/5;AX.push([Math.sin(tA)*Math.cos(a),Math.sin(tA)*Math.sin(a),Math.cos(tA)]);}
+const pos=v=>[0,1,2].map(j=>v.reduce((acc,x,i)=>acc+x*AX[i][j]/2,0));
+const add=(a,b)=>a.map((x,i)=>x+b[i]),sub=(a,b)=>a.map((x,i)=>x-b[i]),dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const nrm=a=>{const L=Math.hypot(...a);return a.map(x=>x/L);};
+const SP=D.SIG.map(pos);
+function section(P,n,h){const pts=[];for(const [a,b] of D.E){const za=dot(P[a],n)-h,zb=dot(P[b],n)-h;if(za*zb<0){const l=za/(za-zb);pts.push(add(P[a],sub(P[b],P[a]).map(x=>x*l)));}else if(Math.abs(za)<1e-9)pts.push(P[a]);else if(Math.abs(zb)<1e-9)pts.push(P[b]);}
+  const U=[];for(const p of pts)if(!U.some(q=>Math.hypot(...sub(p,q))<1e-6))U.push(p);if(U.length<3)return null;
+  const c=[0,1,2].map(j=>U.reduce((s,p)=>s+p[j],0)/U.length);let u=nrm(cross(n,Math.abs(n[2])<0.9?[0,0,1]:[1,0,0]));const w=cross(n,u);
+  U.sort((p,q)=>Math.atan2(dot(sub(p,c),w),dot(sub(p,c),u))-Math.atan2(dot(sub(q,c),w),dot(sub(q,c),u)));return U;}
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+function poly(pts){ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);ctx.closePath();}
+function solid(P,V,scr,alpha){const cc=V([0,1,2].map(j=>P.reduce((s,p)=>s+p[j],0)/P.length));const it=[];
+  for(const f of D.F){const w=f.map(i=>V(P[i]));const n=cross(sub(w[1],w[0]),sub(w[2],w[0]));const m=[0,1,2].map(j=>(w[0][j]+w[1][j]+w[2][j]+w[3][j])/4);
+    const sg=Math.sign(dot(n,sub(m,cc)));if(sg*n[2]<=0)continue;it.push({w,z:m[2]});}
+  return it;}
+const RING=D.C.map(c=>SP.map(p=>add(pos(c),p)));
+const H=1.17082+1.61803;
+const PH=[[12,"ring"],[3,"hold"],[7,"a5"],[7,"a3"],[7,"a2"]];const TOT=PH.reduce((s,p)=>s+p[0],0);
+const AXS={a5:["五回軸",[0,0,1]],a3:["三回軸",nrm(pos(D.N3))],a2:["二回軸",nrm(pos(D.N2))]};
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const f=Math.min(1,u/PH[i][0]);const sc=PH[i][1];
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  if(sc==="ring"||sc==="hold"){const h=sc==="ring"?-H+2*H*Math.min(1,f*1.0)*(f<0.5?1:1):0;const hh=sc==="ring"?(-H+0.02+(2*H-0.04)*(f<0.5?f*2*0.5+0:0.5+(f-0.5)*2*0.5)):0;
+    const zc=sc==="ring"?(f<0.5?-H+0.02+(H-0.02)*f*2:0):0;
+    const V=view(30,-35);const S=95;const scr=q=>[500+S*q[0],520-S*q[1]];
+    const items=[];RING.forEach((P,k)=>{solid(P,V,scr).forEach(x=>items.push({...x,k}));});items.sort((a,b)=>a.z-b.z);
+    for(const it of items){poly(it.w.map(scr));ctx.globalAlpha=0.16;ctx.fillStyle=css("--solid");ctx.fill();ctx.globalAlpha=0.5;ctx.lineWidth=1;ctx.strokeStyle=css("--edge");ctx.stroke();ctx.globalAlpha=1;}
+    let label="";const cnt={};
+    RING.forEach((P,k)=>{const s=section(P,[0,0,1],zc);if(!s)return;cnt[s.length]=(cnt[s.length]||0)+1;poly(s.map(p=>scr(V(p))));
+      ctx.fillStyle=Math.abs(zc)<1e-6?css("--c"+(k%5)):css("--plane");ctx.globalAlpha=Math.abs(zc)<1e-6?1:0.75;ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=2.5;ctx.strokeStyle=css("--ink");ctx.stroke();});
+    label=Object.entries(cnt).map(([n,c])=>n+" 角形 × "+c).join("、")||"—";
+    document.getElementById("ax").textContent="輪を水平に（高さ "+(Math.abs(zc)<1e-6?"0：真ん中":zc.toFixed(2))+"）";document.getElementById("cut").textContent=label;}
+  else{const [nm,n]=AXS[sc];let mn=1e9,mx=-1e9;SP.forEach(p=>{const d=dot(p,n);mn=Math.min(mn,d);mx=Math.max(mx,d);});
+    const h=mn+0.005+(mx-mn-0.01)*f;
+    const V0=view(25,-30+40*f);const S=230;const scr=q=>[500+S*q[0],500-S*q[1]];
+    const items=solid(SP,V0,scr).sort((a,b)=>a.z-b.z);
+    for(const it of items){poly(it.w.map(scr));ctx.globalAlpha=0.22;ctx.fillStyle=css("--solid");ctx.fill();ctx.globalAlpha=0.7;ctx.lineWidth=1.6;ctx.strokeStyle=css("--edge");ctx.stroke();ctx.globalAlpha=1;}
+    const s=section(SP,n,h);if(s){poly(s.map(p=>scr(V0(p))));ctx.fillStyle=css("--plane");ctx.globalAlpha=0.85;ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=3;ctx.strokeStyle=css("--ink");ctx.stroke();
+      const a=scr(V0([0,0,0])),b=scr(V0(n.map(x=>x*2.1))),c=scr(V0(n.map(x=>-x*2.1)));ctx.setLineDash([10,10]);ctx.lineWidth=3;ctx.strokeStyle=css("--ink");ctx.beginPath();ctx.moveTo(...c);ctx.lineTo(...b);ctx.stroke();ctx.setLineDash([]);}
+    document.getElementById("ax").textContent="30 面体 1 個を "+nm+" に垂直に";document.getElementById("cut").textContent=s?s.length+" 角形":"—";}
+}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?13:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

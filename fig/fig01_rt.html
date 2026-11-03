@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>符号の組で書く30面体</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第1章：5回軸6本の符号の組 (±1)^6 で黄金のひし形30面体を書き、真上から影を落とす */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --a0:#1e2724; --a1:#e0b030; --a2:#1f5fa8; --a3:#b0452a; --a4:#3d7d4f; --a5:#8b8f8a;
+  --face:#d9d3c4; --v5:#1e2724; --v3:#ffffff; --hl:#b0452a;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --a0:#e6ebe7; --face:#3a423e; --v5:#e6ebe7; --v3:#1d2421; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --a0:#e6ebe7; --face:#3a423e; --v5:#e6ebe7; --v3:#1d2421; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px;min-width:0}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1.02rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--a2);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:2px;vertical-align:-.1em;margin-right:.2em}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;vertical-align:-.05em;margin-right:.2em;border:1.5px solid var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>符号の組で書く30面体</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="5回軸6本の符号の組で書いた黄金のひし形30面体を回し、最後に真上から影を落として21の番地に分かれる様子を見せる図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv">
+      <div><span>段階</span><b id="ph">—</b></div>
+      <div><span>赤い頂点の符号 (e0…e5)</span><b id="sg">—</b></div>
+      <div><span>S（長さを決める整数）</span><b id="ss">—</b></div>
+    </div>
+  </div>
+  <p>黄金のひし形 30 面体を、5 回軸 6 本の半分ずつの和で書きます。軸ごとに＋か−を選ぶと、符号の組は 2⁶ = 64 通りです。辺の色は軸の色で、<span class="sw" style="background:var(--a0)"></span>e0（真上）、<span class="sw" style="background:var(--a1)"></span>e1、<span class="sw" style="background:var(--a2)"></span>e2、<span class="sw" style="background:var(--a3)"></span>e3、<span class="sw" style="background:var(--a4)"></span>e4、<span class="sw" style="background:var(--a5)"></span>e5 です。どの辺も、符号を一つだけ反転した二つの頂点を結びます。</p>
+  <p>64 通りを整数 S で分けると、S = 5 が 12 個（<span class="dot" style="background:var(--v5)"></span>五つの面が集まる頂点）、S = 3 が 20 個（<span class="dot" style="background:var(--v3)"></span>三つの面が集まる頂点）で、この 32 個が外側の頂点です。残りの 32 個は内側に入ります。赤い頂点は、頂点を一つずつ巡りながら、その符号の組を上に表示しています。</p>
+  <p>最後に真上から見ると、32 個の頂点の影は 21 の番地に落ちます。中心に 2 個、内側の十角形に 1 個ずつ、外側の十角形に 2 個ずつです。</p>
+  <p class="note">符号の組・S・辺と面のつながりはすべて整数で決めています。画面の座標に直す最後の一回だけ、観察者側の表示として実数を使っています。</p>
+</div>
+<script>
+const D={"V": [[-1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, 1], [-1, -1, -1, -1, 1, -1], [-1, -1, -1, -1, 1, 1], [-1, -1, -1, 1, -1, -1], [-1, -1, -1, 1, 1, -1], [-1, -1, -1, 1, 1, 1], [-1, -1, 1, -1, -1, -1], [-1, -1, 1, 1, -1, -1], [-1, -1, 1, 1, 1, -1], [-1, 1, -1, -1, -1, -1], [-1, 1, -1, -1, -1, 1], [-1, 1, -1, -1, 1, 1], [-1, 1, 1, -1, -1, -1], [-1, 1, 1, -1, -1, 1], [-1, 1, 1, 1, -1, -1], [1, -1, -1, -1, 1, 1], [1, -1, -1, 1, 1, -1], [1, -1, -1, 1, 1, 1], [1, -1, 1, 1, -1, -1], [1, -1, 1, 1, 1, -1], [1, -1, 1, 1, 1, 1], [1, 1, -1, -1, -1, 1], [1, 1, -1, -1, 1, 1], [1, 1, -1, 1, 1, 1], [1, 1, 1, -1, -1, -1], [1, 1, 1, -1, -1, 1], [1, 1, 1, -1, 1, 1], [1, 1, 1, 1, -1, -1], [1, 1, 1, 1, -1, 1], [1, 1, 1, 1, 1, -1], [1, 1, 1, 1, 1, 1]], "K": [5, 3, 3, 5, 3, 5, 3, 3, 5, 3, 3, 5, 3, 5, 3, 3, 3, 3, 5, 3, 5, 3, 3, 5, 3, 3, 5, 3, 5, 3, 3, 5], "E": [[0, 10, 1], [0, 7, 2], [0, 4, 3], [0, 2, 4], [0, 1, 5], [1, 11, 1], [1, 3, 4], [2, 5, 3], [2, 3, 5], [3, 16, 0], [3, 12, 1], [3, 6, 3], [4, 8, 2], [4, 5, 4], [5, 17, 0], [5, 9, 2], [5, 6, 5], [6, 18, 0], [7, 13, 1], [7, 8, 3], [8, 19, 0], [8, 15, 1], [8, 9, 4], [9, 20, 0], [10, 13, 2], [10, 11, 5], [11, 22, 0], [11, 14, 2], [11, 12, 4], [12, 23, 0], [13, 25, 0], [13, 15, 3], [13, 14, 5], [14, 26, 0], [15, 28, 0], [16, 23, 1], [16, 18, 3], [17, 20, 2], [17, 18, 5], [18, 24, 1], [18, 21, 2], [19, 28, 1], [19, 20, 4], [20, 30, 1], [20, 21, 5], [21, 31, 1], [22, 26, 2], [22, 23, 4], [23, 27, 2], [23, 24, 3], [24, 31, 2], [25, 28, 3], [25, 26, 5], [26, 29, 3], [26, 27, 4], [27, 31, 3], [28, 30, 4], [28, 29, 5], [29, 31, 4], [30, 31, 5]], "F": [[0, 10, 13, 7], [0, 10, 11, 1], [0, 7, 8, 4], [0, 4, 5, 2], [0, 2, 3, 1], [1, 11, 12, 3], [2, 5, 6, 3], [3, 16, 23, 12], [3, 16, 18, 6], [4, 8, 9, 5], [5, 17, 20, 9], [5, 17, 18, 6], [7, 13, 15, 8], [8, 19, 28, 15], [8, 19, 20, 9], [10, 13, 14, 11], [11, 22, 26, 14], [11, 22, 23, 12], [13, 25, 28, 15], [13, 25, 26, 14], [16, 23, 24, 18], [17, 20, 21, 18], [18, 24, 31, 21], [19, 28, 30, 20], [20, 30, 31, 21], [22, 26, 27, 23], [23, 27, 31, 24], [25, 28, 29, 26], [26, 29, 31, 27], [28, 30, 31, 29]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tA=Math.atan(2);
+const AX=[[0,0,1]];for(let k=1;k<=5;k++){const a=2*Math.PI*k/5;AX.push([Math.sin(tA)*Math.cos(a),Math.sin(tA)*Math.sin(a),Math.cos(tA)]);}
+const P=D.V.map(s=>[0,1,2].map(j=>s.reduce((acc,x,i)=>acc+x*AX[i][j]/2,0)));
+const PH=[[4,"64 通りの符号の組"],[10,"回して見る：頂点 32・辺 60・面 30"],[4,"真上へ"],[6,"真上から：影は 21 の番地"],[3,"もとへ"]];
+const TOT=PH.reduce((s,p)=>s+p[0],0);
+const sm=x=>x*x*(3-2*x);
+function state(t){let i=0;while(i<PH.length-1&&t>=PH[i][0]){t-=PH[i][0];i++;}const u=Math.min(1,t/PH[i][0]);
+  let el=22,az=-30,grow=1;
+  if(i===0){grow=sm(u);az=-30;}
+  if(i===1){az=-30-360*u;}
+  if(i===2){az=-30;el=22+68*sm(u);}
+  if(i===3){az=-30;el=90;}
+  if(i===4){az=-30;el=90-68*sm(u);}
+  return{i,u,el,az,grow};}
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+const S=230;const scr=q=>[500+S*q[0],500-S*q[1]];
+function draw(t){
+  const s=state(t),V=view(s.el,s.az),Q=P.map(p=>V(p.map(x=>x*s.grow)));
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const items=[];
+  D.F.forEach(f=>{const z=f.reduce((a,i)=>a+Q[i][2],0)/4;items.push({t:"f",z:z-0.001,f});});
+  D.E.forEach(e=>{items.push({t:"e",z:(Q[e[0]][2]+Q[e[1]][2])/2,e});});
+  D.V.forEach((v,i)=>items.push({t:"v",z:Q[i][2]+0.002,i}));
+  items.sort((a,b)=>a.z-b.z);
+  const hl=Math.floor(t*1.2)%32;
+  for(const it of items){
+    if(it.t==="f"){ctx.beginPath();it.f.forEach((i,k)=>{const p=scr(Q[i]);k?ctx.lineTo(...p):ctx.moveTo(...p);});ctx.closePath();
+      ctx.globalAlpha=0.28;ctx.fillStyle=css("--face");ctx.fill();ctx.globalAlpha=1;}
+    else if(it.t==="e"){const a=scr(Q[it.e[0]]),b=scr(Q[it.e[1]]);ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);
+      ctx.strokeStyle=css("--a"+it.e[2]);ctx.lineWidth=it.e[2]===0?3.5:4.5;ctx.stroke();}
+    else{const p=scr(Q[it.i]);const k=D.K[it.i];ctx.beginPath();ctx.arc(p[0],p[1],k===5?12:10,0,7);
+      ctx.fillStyle=it.i===hl?css("--hl"):(k===5?css("--v5"):css("--v3"));ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle=css("--ink");ctx.stroke();}
+  }
+  if(s.i===3){ // 影の番地の数え
+    const cnt={};D.V.forEach((v,i)=>{const p=scr(Q[i]);const key=Math.round(p[0])+","+Math.round(p[1]);cnt[key]=(cnt[key]||0)+1;});
+    ctx.font="600 26px "+css("--mono");ctx.fillStyle=css("--muted");ctx.textAlign="center";
+    Object.entries(cnt).forEach(([k,c])=>{const [x,y]=k.split(",").map(Number);if(c>1){ctx.fillText("×"+c,x+28,y-18);}});
+  }
+  document.getElementById("ph").textContent=PH[s.i][1];
+  document.getElementById("sg").textContent="("+D.V[hl].map(x=>x>0?"+":"−").join(" ")+")";
+  document.getElementById("ss").textContent=D.K[hl];
+}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?6:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

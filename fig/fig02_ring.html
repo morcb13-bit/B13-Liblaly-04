@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>30面体の輪</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第2章：30面体1個（最初の1）に整数の操作 M を掛けて、10個の輪（次の1）を作る */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --up:#d6c4b0; --dn:#b0c0d0; --zig:#b0452a; --same:#1f5fa8; --edge:#3a4440; --hl:#e0b030;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --edge:#9aa6a0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --edge:#9aa6a0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px;min-width:0}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--same);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:2px;vertical-align:-.1em;margin-right:.2em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>30面体の輪</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体1個に整数の操作を10回掛けて輪を作り、ジグザグの面と同じ段の面で接する様子を見せる図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv">
+      <div><span>段階</span><b id="ph">—</b></div>
+      <div><span>中心 cₖ（半分を単位にした整数の組）</span><b id="cc">—</b></div>
+    </div>
+  </div>
+  <p>はじめの 30 面体 1 個が最初の 1 です。中心は c₀ = (1, 1, −1, −1, 1, 3) で、6 本の軸の係数を半分を単位にした整数で書いています。この組の e1〜e5 を三つずらして全体の符号を反転する操作 M を掛けるたびに、隣の 30 面体が一つ現れます。10 回掛けると c₀ に戻り、輪が閉じます。この輪が次の 1 です。</p>
+  <p>赤い面<span class="sw" style="background:var(--zig)"></span>は、上の段と下の段が交互に接するジグザグの 10 枚です。青い面<span class="sw" style="background:var(--same)"></span>は、同じ段の隣どうしが接する 10 枚で、上の段 5 個と下の段 5 個がそれぞれ五角形の輪を作っています。どの 30 面体も、ちょうど 4 個の相手と面で接しています。</p>
+  <p>最後に真上から見ると、10 個の中心の影は十角形に並び、一つ進むごとに番地がちょうど ζ 倍になります。</p>
+  <p class="note">中心・頂点・接する面は、すべて整数の組と、頂点の組の一致で決めています。画面の座標に直す最後の一回だけ、観察者側の表示として実数を使っています。30 面体の色と陰影は表示のためのものです。</p>
+</div>
+<script>
+const D={"C": [[1, 1, -1, -1, 1, 3], [-1, 1, -1, -3, -1, 1], [1, 3, 1, -1, -1, 1], [-1, 1, 1, -1, -3, -1], [1, 1, 3, 1, -1, -1], [-1, -1, 1, 1, -1, -3], [1, -1, 1, 3, 1, -1], [-1, -3, -1, 1, 1, -1], [1, -1, -1, 1, 3, 1], [-1, -1, -3, -1, 1, 1]], "SIG": [[-1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, 1], [-1, -1, -1, -1, 1, -1], [-1, -1, -1, -1, 1, 1], [-1, -1, -1, 1, -1, -1], [-1, -1, -1, 1, 1, -1], [-1, -1, -1, 1, 1, 1], [-1, -1, 1, -1, -1, -1], [-1, -1, 1, 1, -1, -1], [-1, -1, 1, 1, 1, -1], [-1, 1, -1, -1, -1, -1], [-1, 1, -1, -1, -1, 1], [-1, 1, -1, -1, 1, 1], [-1, 1, 1, -1, -1, -1], [-1, 1, 1, -1, -1, 1], [-1, 1, 1, 1, -1, -1], [1, -1, -1, -1, 1, 1], [1, -1, -1, 1, 1, -1], [1, -1, -1, 1, 1, 1], [1, -1, 1, 1, -1, -1], [1, -1, 1, 1, 1, -1], [1, -1, 1, 1, 1, 1], [1, 1, -1, -1, -1, 1], [1, 1, -1, -1, 1, 1], [1, 1, -1, 1, 1, 1], [1, 1, 1, -1, -1, -1], [1, 1, 1, -1, -1, 1], [1, 1, 1, -1, 1, 1], [1, 1, 1, 1, -1, -1], [1, 1, 1, 1, -1, 1], [1, 1, 1, 1, 1, -1], [1, 1, 1, 1, 1, 1]], "FACE": [[0, 10, 13, 7], [0, 10, 11, 1], [0, 7, 8, 4], [0, 4, 5, 2], [0, 2, 3, 1], [1, 11, 12, 3], [2, 5, 6, 3], [3, 16, 23, 12], [3, 16, 18, 6], [4, 8, 9, 5], [5, 17, 20, 9], [5, 17, 18, 6], [7, 13, 15, 8], [8, 19, 28, 15], [8, 19, 20, 9], [10, 13, 14, 11], [11, 22, 26, 14], [11, 22, 23, 12], [13, 25, 28, 15], [13, 25, 26, 14], [16, 23, 24, 18], [17, 20, 21, 18], [18, 24, 31, 21], [19, 28, 30, 20], [20, 30, 31, 21], [22, 26, 27, 23], [23, 27, 31, 24], [25, 28, 29, 26], [26, 29, 31, 27], [28, 30, 31, 29]], "EDGE": [[0, 10, 1], [0, 7, 2], [0, 4, 3], [0, 2, 4], [0, 1, 5], [1, 11, 1], [1, 3, 4], [2, 5, 3], [2, 3, 5], [3, 16, 0], [3, 12, 1], [3, 6, 3], [4, 8, 2], [4, 5, 4], [5, 17, 0], [5, 9, 2], [5, 6, 5], [6, 18, 0], [7, 13, 1], [7, 8, 3], [8, 19, 0], [8, 15, 1], [8, 9, 4], [9, 20, 0], [10, 13, 2], [10, 11, 5], [11, 22, 0], [11, 14, 2], [11, 12, 4], [12, 23, 0], [13, 25, 0], [13, 15, 3], [13, 14, 5], [14, 26, 0], [15, 28, 0], [16, 23, 1], [16, 18, 3], [17, 20, 2], [17, 18, 5], [18, 24, 1], [18, 21, 2], [19, 28, 1], [19, 20, 4], [20, 30, 1], [20, 21, 5], [21, 31, 1], [22, 26, 2], [22, 23, 4], [23, 27, 2], [23, 24, 3], [24, 31, 2], [25, 28, 3], [25, 26, 5], [26, 29, 3], [26, 27, 4], [27, 31, 3], [28, 30, 4], [28, 29, 5], [29, 31, 4], [30, 31, 5]], "T": [{"a": 0, "b": 1, "kind": "z", "q": [[0, 2, -2, -2, 0, 2], [0, 0, -2, -2, 0, 2], [0, 0, 0, -2, 0, 2], [0, 2, 0, -2, 0, 2]]}, {"a": 0, "b": 2, "kind": "s", "q": [[0, 2, 0, -2, 0, 2], [2, 2, 0, -2, 0, 2], [2, 2, 0, 0, 0, 2], [0, 2, 0, 0, 0, 2]]}, {"a": 0, "b": 8, "kind": "s", "q": [[2, 0, 0, 0, 2, 2], [0, 0, 0, 0, 2, 2], [0, 0, -2, 0, 2, 2], [2, 0, -2, 0, 2, 2]]}, {"a": 0, "b": 9, "kind": "z", "q": [[0, 0, -2, -2, 2, 2], [0, 0, -2, 0, 2, 2], [0, 0, -2, 0, 0, 2], [0, 0, -2, -2, 0, 2]]}, {"a": 1, "b": 2, "kind": "z", "q": [[0, 2, 0, -2, -2, 2], [0, 2, 0, -2, 0, 2], [0, 2, 0, -2, 0, 0], [0, 2, 0, -2, -2, 0]]}, {"a": 1, "b": 3, "kind": "s", "q": [[-2, 0, 0, -2, -2, 0], [-2, 2, 0, -2, -2, 0], [0, 2, 0, -2, -2, 0], [0, 0, 0, -2, -2, 0]]}, {"a": 1, "b": 9, "kind": "s", "q": [[0, 0, -2, -2, 0, 0], [0, 0, -2, -2, 0, 2], [-2, 0, -2, -2, 0, 2], [-2, 0, -2, -2, 0, 0]]}, {"a": 2, "b": 3, "kind": "z", "q": [[0, 2, 2, 0, -2, 0], [0, 2, 2, -2, -2, 0], [0, 2, 0, -2, -2, 0], [0, 2, 0, 0, -2, 0]]}, {"a": 2, "b": 4, "kind": "s", "q": [[0, 2, 2, 0, -2, 0], [0, 2, 2, 0, 0, 0], [2, 2, 2, 0, 0, 0], [2, 2, 2, 0, -2, 0]]}, {"a": 3, "b": 4, "kind": "z", "q": [[0, 2, 2, 0, -2, 0], [0, 2, 2, 0, -2, -2], [0, 0, 2, 0, -2, -2], [0, 0, 2, 0, -2, 0]]}, {"a": 3, "b": 5, "kind": "s", "q": [[-2, 0, 2, 0, -2, -2], [0, 0, 2, 0, -2, -2], [0, 0, 0, 0, -2, -2], [-2, 0, 0, 0, -2, -2]]}, {"a": 4, "b": 5, "kind": "z", "q": [[0, 0, 2, 0, 0, -2], [0, 0, 2, 2, 0, -2], [0, 0, 2, 2, -2, -2], [0, 0, 2, 0, -2, -2]]}, {"a": 4, "b": 6, "kind": "s", "q": [[2, 0, 2, 2, 0, -2], [2, 0, 2, 2, 0, 0], [0, 0, 2, 2, 0, 0], [0, 0, 2, 2, 0, -2]]}, {"a": 5, "b": 6, "kind": "z", "q": [[0, -2, 0, 2, 0, -2], [0, -2, 2, 2, 0, -2], [0, 0, 2, 2, 0, -2], [0, 0, 0, 2, 0, -2]]}, {"a": 5, "b": 7, "kind": "s", "q": [[0, -2, 0, 2, 0, -2], [0, -2, 0, 0, 0, -2], [-2, -2, 0, 0, 0, -2], [-2, -2, 0, 2, 0, -2]]}, {"a": 6, "b": 7, "kind": "z", "q": [[0, -2, 0, 2, 0, -2], [0, -2, 0, 2, 0, 0], [0, -2, 0, 2, 2, 0], [0, -2, 0, 2, 2, -2]]}, {"a": 6, "b": 8, "kind": "s", "q": [[2, 0, 0, 2, 2, 0], [0, 0, 0, 2, 2, 0], [0, -2, 0, 2, 2, 0], [2, -2, 0, 2, 2, 0]]}, {"a": 7, "b": 8, "kind": "z", "q": [[0, -2, 0, 0, 2, 0], [0, -2, 0, 2, 2, 0], [0, -2, -2, 2, 2, 0], [0, -2, -2, 0, 2, 0]]}, {"a": 7, "b": 9, "kind": "s", "q": [[-2, -2, -2, 0, 0, 0], [0, -2, -2, 0, 0, 0], [0, -2, -2, 0, 2, 0], [-2, -2, -2, 0, 2, 0]]}, {"a": 8, "b": 9, "kind": "z", "q": [[0, -2, -2, 0, 2, 2], [0, 0, -2, 0, 2, 2], [0, 0, -2, 0, 2, 0], [0, -2, -2, 0, 2, 0]]}]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tA=Math.atan(2);
+const AX=[[0,0,1]];for(let k=1;k<=5;k++){const a=2*Math.PI*k/5;AX.push([Math.sin(tA)*Math.cos(a),Math.sin(tA)*Math.sin(a),Math.cos(tA)]);}
+const pos=v=>[0,1,2].map(j=>v.reduce((acc,x,i)=>acc+x*AX[i][j]/2,0));
+const add=(a,b)=>a.map((x,i)=>x+b[i]);
+const RT=D.C.map(c=>D.SIG.map(s=>pos(add(c,s))));
+const CEN=D.C.map(pos);
+const PH=[[4,"最初の 1：30 面体 1 個"],[9,"M を掛けるたびに隣が現れる"],[5,"ジグザグに接する面 10 枚"],[5,"同じ段で接する面 10 枚"],[4,"真上へ"],[5,"真上から：中心の影は ζ 倍ずつ"],[3,"もとへ"]];
+const TOT=PH.reduce((s,p)=>s+p[0],0);
+const sm=x=>x*x*(3-2*x);
+function state(t){let i=0;while(i<PH.length-1&&t>=PH[i][0]){t-=PH[i][0];i++;}const u=Math.min(1,t/PH[i][0]);
+  let el=26,az=-40-12*(t+PH.slice(0,i).reduce((a,p)=>a+p[0],0))/1,n=10,zig=0,same=0,top=0;
+  az=-40;
+  if(i===0){n=1;}
+  if(i===1){n=1+Math.min(9,Math.floor(u*10));}
+  if(i===2){zig=sm(u);}
+  if(i===3){zig=1;same=sm(u);}
+  if(i===4){zig=1;same=1;el=26+64*sm(u);}
+  if(i===5){zig=1;same=1;el=90;top=1;}
+  if(i===6){zig=1-sm(u);same=1-sm(u);el=90-64*sm(u);}
+  return{i,u,el,az,n,zig,same,top};}
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+const S=96;const scr=q=>[500+S*q[0],505-S*q[1]];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const sub=(a,b)=>a.map((x,i)=>x-b[i]);
+function poly(pts){ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);ctx.closePath();}
+function draw(t){
+  const s=state(t),V=view(s.el,s.az);
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const items=[];
+  for(let k=0;k<s.n;k++){const Q=RT[k].map(V),cc=V(CEN[k]);
+    for(const f of D.FACE){const w=f.map(i=>Q[i]);const n=cross(sub(w[1],w[0]),sub(w[2],w[0]));const m=[0,1,2].map(j=>(w[0][j]+w[1][j]+w[2][j]+w[3][j])/4);
+      const sg=Math.sign(n[0]*(m[0]-cc[0])+n[1]*(m[1]-cc[1])+n[2]*(m[2]-cc[2]));const L=Math.hypot(...n);const nz=sg*n[2]/L;
+      if(nz<=0)continue;const nx=sg*n[0]/L,ny=sg*n[1]/L;
+      items.push({z:m[2],w,c:k%2?"--dn":"--up",b:0.6+0.4*Math.max(0,-0.35*nx+0.55*ny+0.76*nz)});}}
+  for(const T of D.T){if(T.b>=s.n)continue;const a=T.kind==="z"?s.zig:s.same;if(a<0.01)continue;
+    const w=T.q.map(v=>V(pos(v)));items.push({z:w.reduce((x,p)=>x+p[2],0)/4+0.05,w,ct:T.kind==="z"?"--zig":"--same",a});}
+  items.sort((a,b)=>a.z-b.z);
+  for(const it of items){poly(it.w.map(scr));
+    if(it.ct){ctx.globalAlpha=0.9*it.a;ctx.fillStyle=css(it.ct);ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=2.5;ctx.strokeStyle=css("--ink");ctx.stroke();continue;}
+    const base=css(it.c);const r=parseInt(base.slice(1,3),16),g=parseInt(base.slice(3,5),16),bb=parseInt(base.slice(5,7),16);
+    ctx.globalAlpha=0.42;ctx.fillStyle=`rgb(${Math.round(r*it.b)},${Math.round(g*it.b)},${Math.round(bb*it.b)})`;ctx.fill();ctx.globalAlpha=1;
+    ctx.lineWidth=1.1;ctx.strokeStyle=css("--edge");ctx.stroke();}
+  if(s.top){const P=CEN.map(c=>scr(V(c)));ctx.lineWidth=3;ctx.strokeStyle=css("--hl");poly(P);ctx.stroke();
+    P.forEach((p,k)=>{ctx.beginPath();ctx.arc(p[0],p[1],11,0,7);ctx.fillStyle=css("--hl");ctx.fill();ctx.strokeStyle=css("--ink");ctx.lineWidth=2;ctx.stroke();
+      ctx.font="700 30px "+css("--mono");ctx.fillStyle=css("--ink");ctx.textAlign="center";const d=Math.hypot(p[0]-500,p[1]-505);ctx.fillText("ζ"+(k?"^"+k:"⁰").replace("^1","").replace(/\^(\d)/,(m,x)=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[x]),500+(p[0]-500)*1.18,505+(p[1]-505)*1.18+10);});}
+  const k=Math.max(0,s.n-1);
+  document.getElementById("ph").textContent=PH[s.i][1];
+  document.getElementById("cc").textContent="c"+k+" = ("+D.C[k].join(", ")+")";
+}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?20:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>
