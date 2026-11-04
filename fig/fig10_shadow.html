@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>影と切り口</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第10章：輪のいちばん外側の五角形を真上から見た影と、真ん中の切り口を重ねて比べる */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --c0:#e0b030; --c1:#1f5fa8; --c2:#b0452a; --c3:#3d7d4f; --c4:#ffffff; --edge:#39443f; --rt:#cfd3cc;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; --rt:#4a524e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; --rt:#4a524e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>影と切り口</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体の輪のいちばん外側の五角形と真ん中の切り口の五角形を示し、真上から見ると外側の五角形の影は切り口を中心で反転した別の輪になる図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div><div><span>仰角</span><b id="el">—</b></div></div>
+  </div>
+  <p>30 面体 10 個の輪には、真ん中の平面の切り口の五角形 10 枚（塗りつぶし）と、真ん中からいちばん遠い五角形 10 枚（太い枠）があります。いちばん遠い五角形は、上の段では上の五つ角のまわり、下の段では下の五つ角のまわりの 5 頂点です。</p>
+  <p>真上から見ると、いちばん遠い五角形の影は、切り口の五角形をそれぞれの中心のまわりに半回転させた形になります。中心は同じ所ですが、影の五角形は隣と頂点を一つも共有せず、切り口の円環とは別の輪です。</p>
+  <p class="note">影と切り口の照合はすべて整数で行っています。画面の座標に直す最後の一回だけ、観察者側の表示として実数を使っています。色は前の本と同じく番地 k を 5 で割った余りです。</p>
+</div>
+<script>
+const D={"far":[[[2.0652,-0.8507,2.3416],[3.0652,-0.5257,2.3416],[3.0652,0.5257,2.3416],[2.0652,0.8507,2.3416],[1.4472,-0.0,2.3416]],[[2.7889,1.3764,-2.3416],[2.1708,0.5257,-2.3416],[1.1708,0.8507,-2.3416],[1.1708,1.9021,-2.3416],[2.1708,2.227,-2.3416]],[[0.4472,1.3764,2.3416],[1.4472,1.7013,2.3416],[1.4472,2.7528,2.3416],[0.4472,3.0777,2.3416],[-0.1708,2.227,2.3416]],[[0.1708,2.227,-2.3416],[-0.4472,1.3764,-2.3416],[-1.4472,1.7013,-2.3416],[-1.4472,2.7528,-2.3416],[-0.4472,3.0777,-2.3416]],[[-2.1708,0.5257,2.3416],[-1.1708,0.8507,2.3416],[-1.1708,1.9021,2.3416],[-2.1708,2.227,2.3416],[-2.7889,1.3764,2.3416]],[[-1.4472,0.0,-2.3416],[-2.0652,-0.8507,-2.3416],[-3.0652,-0.5257,-2.3416],[-3.0652,0.5257,-2.3416],[-2.0652,0.8507,-2.3416]],[[-2.1708,-2.227,2.3416],[-1.1708,-1.9021,2.3416],[-1.1708,-0.8507,2.3416],[-2.1708,-0.5257,2.3416],[-2.7889,-1.3764,2.3416]],[[0.1708,-2.227,-2.3416],[-0.4472,-3.0777,-2.3416],[-1.4472,-2.7528,-2.3416],[-1.4472,-1.7013,-2.3416],[-0.4472,-1.3764,-2.3416]],[[0.4472,-3.0777,2.3416],[1.4472,-2.7528,2.3416],[1.4472,-1.7013,2.3416],[0.4472,-1.3764,2.3416],[-0.1708,-2.227,2.3416]],[[2.7889,-1.3764,-2.3416],[2.1708,-2.227,-2.3416],[1.1708,-1.9021,-2.3416],[1.1708,-0.8507,-2.3416],[2.1708,-0.5257,-2.3416]]],"cut":[[[3.2361,-0.0,0.0],[2.618,-0.8507,0.0],[1.618,-0.5257,0.0],[1.618,0.5257,0.0],[2.618,0.8507,0.0]],[[1.618,0.5257,0.0],[2.618,0.8507,0.0],[2.618,1.9021,0.0],[1.618,2.227,0.0],[1.0,1.3764,0.0]],[[1.618,2.227,0.0],[1.0,1.3764,0.0],[0.0,1.7013,0.0],[0.0,2.7528,0.0],[1.0,3.0777,0.0]],[[-1.0,1.3764,0.0],[0.0,1.7013,0.0],[0.0,2.7528,0.0],[-1.0,3.0777,0.0],[-1.618,2.227,0.0]],[[-1.0,1.3764,0.0],[-1.618,0.5257,0.0],[-2.618,0.8507,0.0],[-2.618,1.9021,0.0],[-1.618,2.227,0.0]],[[-2.618,-0.8507,0.0],[-1.618,-0.5257,0.0],[-1.618,0.5257,0.0],[-2.618,0.8507,0.0],[-3.2361,0.0,0.0]],[[-1.0,-1.3764,0.0],[-1.618,-2.227,0.0],[-2.618,-1.9021,0.0],[-2.618,-0.8507,0.0],[-1.618,-0.5257,0.0]],[[-1.0,-3.0777,0.0],[-0.0,-2.7528,0.0],[-0.0,-1.7013,0.0],[-1.0,-1.3764,0.0],[-1.618,-2.227,0.0]],[[1.618,-2.227,0.0],[1.0,-3.0777,0.0],[-0.0,-2.7528,0.0],[-0.0,-1.7013,0.0],[1.0,-1.3764,0.0]],[[1.618,-2.227,0.0],[2.618,-1.9021,0.0],[2.618,-0.8507,0.0],[1.618,-0.5257,0.0],[1.0,-1.3764,0.0]]],"C":[[2.3416,-0.0,1.1708],[1.8944,1.3764,-1.1708],[0.7236,2.227,1.1708],[-0.7236,2.227,-1.1708],[-1.8944,1.3764,1.1708],[-2.3416,0.0,-1.1708],[-1.8944,-1.3764,1.1708],[-0.7236,-2.227,-1.1708],[0.7236,-2.227,1.1708],[1.8944,-1.3764,-1.1708]],"SIG":[[0.0,0.0,-1.618],[0.8944,-0.0,-1.1708],[0.2764,-0.8507,-1.1708],[1.1708,-0.8507,-0.7236],[-0.7236,-0.5257,-1.1708],[-0.4472,-1.3764,-0.7236],[0.4472,-1.3764,-0.2764],[-0.7236,0.5257,-1.1708],[-1.4472,0.0,-0.7236],[-1.1708,-0.8507,-0.2764],[0.2764,0.8507,-1.1708],[1.1708,0.8507,-0.7236],[1.4472,-0.0,-0.2764],[-0.4472,1.3764,-0.7236],[0.4472,1.3764,-0.2764],[-1.1708,0.8507,-0.2764],[1.1708,-0.8507,0.2764],[-0.4472,-1.3764,0.2764],[0.4472,-1.3764,0.7236],[-1.4472,0.0,0.2764],[-1.1708,-0.8507,0.7236],[-0.2764,-0.8507,1.1708],[1.1708,0.8507,0.2764],[1.4472,-0.0,0.7236],[0.7236,-0.5257,1.1708],[-0.4472,1.3764,0.2764],[0.4472,1.3764,0.7236],[0.7236,0.5257,1.1708],[-1.1708,0.8507,0.7236],[-0.2764,0.8507,1.1708],[-0.8944,0.0,1.1708],[-0.0,-0.0,1.618]],"F":[[0,10,13,7],[0,10,11,1],[0,7,8,4],[0,4,5,2],[0,2,3,1],[1,11,12,3],[2,5,6,3],[3,16,23,12],[3,16,18,6],[4,8,9,5],[5,17,20,9],[5,17,18,6],[7,13,15,8],[8,19,28,15],[8,19,20,9],[10,13,14,11],[11,22,26,14],[11,22,23,12],[13,25,28,15],[13,25,26,14],[16,23,24,18],[17,20,21,18],[18,24,31,21],[19,28,30,20],[20,30,31,21],[22,26,27,23],[23,27,31,24],[25,28,29,26],[26,29,31,27],[28,30,31,29]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const add=(a,b)=>a.map((x,i)=>x+b[i]),sub=(a,b)=>a.map((x,i)=>x-b[i]);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+function poly(pts){ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);ctx.closePath();}
+function order(P){const c=[0,1].map(j=>P.reduce((s,p)=>s+p[j],0)/P.length);return [...P].sort((a,b)=>Math.atan2(a[1]-c[1],a[0]-c[0])-Math.atan2(b[1]-c[1],b[0]-c[0]));}
+const FAR=D.far.map(order),CUT=D.cut.map(order);
+const PH=[[8,"外側の五角形と、真ん中の切り口"],[4,"真上へ"],[6,"真上から：影は半回転した別の輪"],[3,"立体を消す"],[5,"影と切り口を重ねる"],[3,"もとへ"]];
+const TOT=PH.reduce((s,p)=>s+p[0],0);const sm=x=>x*x*(3-2*x);
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const f=Math.min(1,u/PH[i][0]);
+  let el=28,az=-40-30*f,rt=1;
+  if(i===0){az=-40-60*f;}
+  if(i===1){az=-100;el=28+62*sm(f);}
+  if(i===2){az=-100;el=90;}
+  if(i===3){az=-100;el=90;rt=1-sm(f);}
+  if(i===4){az=-100;el=90;rt=0;}
+  if(i===5){az=-100+60*sm(f);el=90-62*sm(f);rt=sm(f);}
+  const V=view(el,az);const S=98;const scr=q=>[500+S*q[0],505-S*q[1]];
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const items=[];
+  if(rt>0.01){D.C.forEach(c=>{const P=D.SIG.map(s=>add(c,s));const cc=V(c);
+    for(const fc of D.F){const w=fc.map(j=>V(P[j]));const n=cross(sub(w[1],w[0]),sub(w[2],w[0]));const m=[0,1,2].map(j=>(w[0][j]+w[1][j]+w[2][j]+w[3][j])/4);
+      const sg=Math.sign(n[0]*(m[0]-cc[0])+n[1]*(m[1]-cc[1])+n[2]*(m[2]-cc[2]));if(sg*n[2]<=0)continue;items.push({t:"rt",w,z:m[2]});}});}
+  CUT.forEach((P,k)=>{const w=P.map(V);items.push({t:"cut",w,k,z:w.reduce((a,q)=>a+q[2],0)/5});});
+  FAR.forEach((P,k)=>{const w=P.map(V);items.push({t:"far",w,k,z:w.reduce((a,q)=>a+q[2],0)/5+0.02});});
+  items.sort((a,b)=>a.z-b.z);
+  const top=el>89;
+  for(const it of items){poly(it.w.map(scr));
+    if(it.t==="rt"){ctx.globalAlpha=0.18*rt;ctx.fillStyle=css("--rt");ctx.fill();ctx.globalAlpha=0.45*rt;ctx.lineWidth=1;ctx.strokeStyle=css("--edge");ctx.stroke();ctx.globalAlpha=1;}
+    else if(it.t==="cut"){ctx.globalAlpha=top&&rt<0.5?0.9:0.95;ctx.fillStyle=css("--c"+(it.k%5));ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=2;ctx.strokeStyle=css("--edge");ctx.stroke();}
+    else{ctx.lineWidth=6;ctx.strokeStyle=css("--c"+(it.k%5));ctx.stroke();ctx.lineWidth=1.6;ctx.strokeStyle=css("--ink");ctx.stroke();}}
+  document.getElementById("ph").textContent=PH[i][1];document.getElementById("el").textContent=Math.round(el)+"°";}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?24:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

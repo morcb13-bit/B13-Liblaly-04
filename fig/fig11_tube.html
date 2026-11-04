@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>30面体のチューブ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第11章：30面体10個の輪を、整数の一歩を72°ずつ回しながら重ね、五回らせんのチューブにする */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --c0:#e0b030; --c1:#1f5fa8; --c2:#b0452a; --c3:#3d7d4f; --c4:#ffffff; --edge:#39443f;
+  --rtu:#d6c4b0; --rtd:#b0c0d0;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --c4:#d9d6cc; --edge:#0d110f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>30面体のチューブ</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体10個の輪を、一歩ずつ72度回しながら上へ重ね、五回らせんのチューブになる図。各段の真ん中には五角形10枚の円環がある"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv"><div><span>重ねた段</span><b id="n">—</b></div><div><span>段階</span><b id="ph">—</b></div></div>
+  </div>
+  <p>30 面体 10 個の輪の上に、同じ輪を重ねていきます。一歩は 6 個の整数の組 v ＝ (4, 2, 4, 4, 2, 0) で、上の輪は下の輪と面 6 枚で接し、食い込みません。一段ごとに一歩を 72° 回す（e1〜e5 を一つずらす）と、輪の中心は五角形を描いて上り、5 段で真上に戻ります。</p>
+  <p>どの段にも、真ん中の平面に五角形 10 枚の円環があります（色は前の本と同じ番地 k を 5 で割った余り）。前の本の円環が、らせんを描いて上へ積み重なっています。</p>
+  <p class="note">重ね方・接し方・切り口はすべて整数で確かめています。画面の座標に直すところだけ、観察者側の表示として実数を使っています。30 面体は半透明にしています。</p>
+</div>
+<script>
+const D={"offs":[[0.0,0.0,0.0],[-2.3416,0.0,4.6833],[-3.0652,-2.227,9.3666],[-1.1708,-3.6034,14.0498],[0.7236,-2.227,18.7331],[0.0,-0.0,23.4164]],"C":[[2.3416,-0.0,1.1708],[1.8944,1.3764,-1.1708],[0.7236,2.227,1.1708],[-0.7236,2.227,-1.1708],[-1.8944,1.3764,1.1708],[-2.3416,0.0,-1.1708],[-1.8944,-1.3764,1.1708],[-0.7236,-2.227,-1.1708],[0.7236,-2.227,1.1708],[1.8944,-1.3764,-1.1708]],"SIG":[[0.0,0.0,-1.618],[0.8944,-0.0,-1.1708],[0.2764,-0.8507,-1.1708],[1.1708,-0.8507,-0.7236],[-0.7236,-0.5257,-1.1708],[-0.4472,-1.3764,-0.7236],[0.4472,-1.3764,-0.2764],[-0.7236,0.5257,-1.1708],[-1.4472,0.0,-0.7236],[-1.1708,-0.8507,-0.2764],[0.2764,0.8507,-1.1708],[1.1708,0.8507,-0.7236],[1.4472,-0.0,-0.2764],[-0.4472,1.3764,-0.7236],[0.4472,1.3764,-0.2764],[-1.1708,0.8507,-0.2764],[1.1708,-0.8507,0.2764],[-0.4472,-1.3764,0.2764],[0.4472,-1.3764,0.7236],[-1.4472,0.0,0.2764],[-1.1708,-0.8507,0.7236],[-0.2764,-0.8507,1.1708],[1.1708,0.8507,0.2764],[1.4472,-0.0,0.7236],[0.7236,-0.5257,1.1708],[-0.4472,1.3764,0.2764],[0.4472,1.3764,0.7236],[0.7236,0.5257,1.1708],[-1.1708,0.8507,0.7236],[-0.2764,0.8507,1.1708],[-0.8944,0.0,1.1708],[-0.0,-0.0,1.618]],"F":[[0,10,13,7],[0,10,11,1],[0,7,8,4],[0,4,5,2],[0,2,3,1],[1,11,12,3],[2,5,6,3],[3,16,23,12],[3,16,18,6],[4,8,9,5],[5,17,20,9],[5,17,18,6],[7,13,15,8],[8,19,28,15],[8,19,20,9],[10,13,14,11],[11,22,26,14],[11,22,23,12],[13,25,28,15],[13,25,26,14],[16,23,24,18],[17,20,21,18],[18,24,31,21],[19,28,30,20],[20,30,31,21],[22,26,27,23],[23,27,31,24],[25,28,29,26],[26,29,31,27],[28,30,31,29]],"cut":[[[1.61803,-0.52573,0.0],[2.61803,-0.85065,0.0],[3.23607,0.0,0.0],[2.61803,0.85065,0.0],[1.61803,0.52573,0.0]],[[1.6180400000000001,0.5257299999999999,0.0],[2.61804,0.8506499999999999,0.0],[2.61804,1.90211,0.0],[1.6180400000000001,2.22703,0.0],[1.0,1.37638,0.0]],[[0.0,1.7013,0.0],[1.0,1.3763800000000002,0.0],[1.61804,2.22703,0.0],[1.0,3.07768,0.0],[0.0,2.7527600000000003,0.0]],[[-1.0,1.3763800000000002,0.0],[0.0,1.7013,0.0],[0.0,2.7527600000000003,0.0],[-1.0,3.07768,0.0],[-1.61804,2.22703,0.0]],[[-2.61804,0.8506499999999999,0.0],[-1.6180400000000001,0.5257299999999999,0.0],[-1.0,1.37638,0.0],[-1.6180400000000001,2.22703,0.0],[-2.61804,1.90211,0.0]],[[-2.61803,-0.85065,0.0],[-1.61803,-0.52573,0.0],[-1.61803,0.52573,0.0],[-2.61803,0.85065,0.0],[-3.23607,0.0,0.0]],[[-2.61804,-1.90211,0.0],[-1.6180400000000001,-2.22703,0.0],[-1.0,-1.37638,0.0],[-1.6180400000000001,-0.5257299999999999,0.0],[-2.61804,-0.8506499999999999,0.0]],[[-1.0,-3.07768,0.0],[0.0,-2.7527600000000003,0.0],[0.0,-1.7013,0.0],[-1.0,-1.3763800000000002,0.0],[-1.61804,-2.22703,0.0]],[[0.0,-2.7527600000000003,0.0],[1.0,-3.07768,0.0],[1.61804,-2.22703,0.0],[1.0,-1.3763800000000002,0.0],[0.0,-1.7013,0.0]],[[1.6180400000000001,-2.22703,0.0],[2.61804,-1.90211,0.0],[2.61804,-0.8506499999999999,0.0],[1.6180400000000001,-0.5257299999999999,0.0],[1.0,-1.37638,0.0]]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const add=(a,b)=>a.map((x,i)=>x+b[i]),sub=(a,b)=>a.map((x,i)=>x-b[i]);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+function poly(pts){ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);ctx.closePath();}
+const N=D.offs.length,PER=2,TOT=N*PER+10;
+const ZM=D.offs[N-1][2]/2;const MX=D.offs.slice(0,5).reduce((s,o)=>s+o[0],0)/5,MY=D.offs.slice(0,5).reduce((s,o)=>s+o[1],0)/5;
+function draw(t){const n=Math.min(N,1+Math.floor(t/PER));const grow=t<N*PER;
+  const el=grow?14:14+56*Math.min(1,Math.max(0,(t-N*PER-4)/3));const az=-30-12*t;
+  const V0=view(el,az);const V=p=>V0([p[0]-MX,p[1]-MY,p[2]-ZM]);const S=el>40?60:31;const scr=q=>[500+S*q[0],500-S*q[1]];
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const items=[];
+  for(let r=0;r<n;r++){const o=D.offs[r];
+    D.cut.forEach((P,k)=>{const w=P.map(p=>V(add(p,o)));items.push({w,z:w.reduce((a,q)=>a+q[2],0)/5+0.01,pen:k});});
+    D.C.forEach(c0=>{const c=add(c0,o);const P=D.SIG.map(s=>add(c,s));const cc=V(c);const up=c0[2]>0;
+      for(const f of D.F){const w=f.map(i=>V(P[i]));const nn=cross(sub(w[1],w[0]),sub(w[2],w[0]));const m=[0,1,2].map(j=>(w[0][j]+w[1][j]+w[2][j]+w[3][j])/4);
+        const sg=Math.sign(nn[0]*(m[0]-cc[0])+nn[1]*(m[1]-cc[1])+nn[2]*(m[2]-cc[2]));if(sg*nn[2]<=0)continue;const L=Math.hypot(...nn);
+        items.push({w,z:m[2],col:up?"--rtu":"--rtd",b:0.6+0.4*Math.max(0,(-0.35*sg*nn[0]+0.55*sg*nn[1]+0.76*sg*nn[2])/L)});}});}
+  items.sort((a,b)=>a.z-b.z);
+  for(const it of items){poly(it.w.map(scr));
+    if(it.pen!==undefined){ctx.fillStyle=css("--c"+(it.pen%5));ctx.fill();ctx.lineWidth=1.2;ctx.strokeStyle=css("--edge");ctx.stroke();continue;}
+    const h=css(it.col);const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    ctx.globalAlpha=0.33;ctx.fillStyle=`rgb(${Math.round(r*it.b)},${Math.round(g*it.b)},${Math.round(b*it.b)})`;ctx.fill();ctx.globalAlpha=0.55;ctx.lineWidth=0.7;ctx.strokeStyle=css("--edge");ctx.stroke();ctx.globalAlpha=1;}
+  document.getElementById("n").textContent=n+" 段";
+  document.getElementById("ph").textContent=grow?"72° ずつ回して重ねる":(el>60?"上から：5 段で真上に戻る":"チューブを回して見る");}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?N*PER+1:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

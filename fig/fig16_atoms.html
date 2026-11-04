@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>正十二面体の中の原子</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第16章：30面体の中の正十二面体の頂点から、正四面体（水素）、鏡写しと合わせた立方体（ヘリウム）、5つの立方体を取り出す */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd; --faint:#b8bdb6;
+  --t1:#b0452a; --t2:#1f5fa8; --c0:#3d7d4f; --c1:#e0b030; --c2:#7a5ca8; --c3:#2a8a8a; --c4:#b06a2a;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --faint:#4a524e; --t1:#e0805f; --t2:#6f9fdc; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --faint:#4a524e; --t1:#e0805f; --t2:#6f9fdc; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1rem}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--t2);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:2px;vertical-align:-.1em;margin-right:.2em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>正十二面体の中の原子</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="30面体の中の正十二面体の頂点から、正四面体、鏡写しの正四面体と合わせた立方体、8つの頂点、二つ目の立方体、5つの立方体を順に取り出す図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div></div>
+  </div>
+  <p>薄い線は 30 面体、灰色の線はその中の正十二面体（30 面体の頂点 20 個）です。正十二面体の頂点から 4 個を選ぶと、<span class="sw" style="background:var(--t1)"></span>正四面体ができます（水素）。それを符号を反転して映した<span class="sw" style="background:var(--t2)"></span>鏡写しの正四面体と合わせると、8 個の頂点はちょうど<span class="sw" style="background:var(--c0)"></span>立方体になります（ヘリウム）。</p>
+  <p>立方体の 8 個の頂点に、リチウムからネオンまでを一つずつ置きます。二つ目の立方体は、最初の立方体と向かい合う 2 個の頂点を共有し、斜めに重なって星の形をつくります（ナトリウムからアルゴン）。正十二面体の中には立方体が 5 つあり、どの頂点も 2 つの立方体に共有されています。</p>
+  <p class="note">正四面体と立方体は、30 面体と同じ 6 個の整数の組で、長さを整数の組で比べて探しています。元素の置き方は監督の読みによるもので、整数で確かめたのは図形の側だけです。画面の座標は観察者側の表示として実数を使っています。</p>
+</div>
+<script>
+const D={"P":[[0.8944,-0.0,-1.1708],[0.2764,-0.8507,-1.1708],[-0.7236,-0.5257,-1.1708],[0.4472,-1.3764,-0.2764],[-0.7236,0.5257,-1.1708],[-1.1708,-0.8507,-0.2764],[0.2764,0.8507,-1.1708],[1.4472,-0.0,-0.2764],[0.4472,1.3764,-0.2764],[-1.1708,0.8507,-0.2764],[1.1708,-0.8507,0.2764],[-0.4472,-1.3764,0.2764],[-1.4472,0.0,0.2764],[-0.2764,-0.8507,1.1708],[1.1708,0.8507,0.2764],[0.7236,-0.5257,1.1708],[-0.4472,1.3764,0.2764],[0.7236,0.5257,1.1708],[-0.2764,0.8507,1.1708],[-0.8944,0.0,1.1708]],"dE":[[0,1],[0,6],[0,7],[1,2],[1,3],[2,4],[2,5],[3,10],[3,11],[4,6],[4,9],[5,11],[5,12],[6,8],[7,10],[7,14],[8,14],[8,16],[9,12],[9,16],[10,15],[11,13],[12,19],[13,15],[13,19],[14,17],[15,17],[16,18],[17,18],[18,19]],"tets":[[0,5,15,16],[3,4,14,19]],"cubes":[[0,3,4,5,14,15,16,19],[0,2,8,9,10,11,17,19],[1,4,7,8,11,12,15,18],[1,5,6,9,10,13,14,18],[2,3,6,7,12,13,16,17]],"cE":[[[0,3],[0,4],[0,14],[3,5],[3,15],[4,5],[4,16],[5,19],[14,15],[14,16],[15,19],[16,19]],[[0,2],[0,8],[0,10],[2,9],[2,11],[8,9],[8,17],[9,19],[10,11],[10,17],[11,19],[17,19]],[[1,4],[1,7],[1,11],[4,8],[4,12],[7,8],[7,15],[8,18],[11,12],[11,15],[12,18],[15,18]],[[1,5],[1,6],[1,10],[5,9],[5,13],[6,9],[6,14],[9,18],[10,13],[10,14],[13,18],[14,18]],[[2,3],[2,6],[2,12],[3,7],[3,13],[6,7],[6,16],[7,17],[12,13],[12,16],[13,17],[16,17]]],"RV":[[0.0,0.0,-1.618],[0.8944,-0.0,-1.1708],[0.2764,-0.8507,-1.1708],[1.1708,-0.8507,-0.7236],[-0.7236,-0.5257,-1.1708],[-0.4472,-1.3764,-0.7236],[0.4472,-1.3764,-0.2764],[-0.7236,0.5257,-1.1708],[-1.4472,0.0,-0.7236],[-1.1708,-0.8507,-0.2764],[0.2764,0.8507,-1.1708],[1.1708,0.8507,-0.7236],[1.4472,-0.0,-0.2764],[-0.4472,1.3764,-0.7236],[0.4472,1.3764,-0.2764],[-1.1708,0.8507,-0.2764],[1.1708,-0.8507,0.2764],[-0.4472,-1.3764,0.2764],[0.4472,-1.3764,0.7236],[-1.4472,0.0,0.2764],[-1.1708,-0.8507,0.7236],[-0.2764,-0.8507,1.1708],[1.1708,0.8507,0.2764],[1.4472,-0.0,0.7236],[0.7236,-0.5257,1.1708],[-0.4472,1.3764,0.2764],[0.4472,1.3764,0.7236],[0.7236,0.5257,1.1708],[-1.1708,0.8507,0.7236],[-0.2764,0.8507,1.1708],[-0.8944,0.0,1.1708],[-0.0,-0.0,1.618]],"RE":[[0,10],[0,7],[0,4],[0,2],[0,1],[1,11],[1,3],[2,5],[2,3],[3,16],[3,12],[3,6],[4,8],[4,5],[5,17],[5,9],[5,6],[6,18],[7,13],[7,8],[8,19],[8,15],[8,9],[9,20],[10,13],[10,11],[11,22],[11,14],[11,12],[12,23],[13,25],[13,15],[13,14],[14,26],[15,28],[16,23],[16,18],[17,20],[17,18],[18,24],[18,21],[19,28],[19,20],[20,30],[20,21],[21,31],[22,26],[22,23],[23,27],[23,24],[24,31],[25,28],[25,26],[26,29],[26,27],[27,31],[28,30],[28,29],[29,31],[30,31]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function view(el,az){const a=az*Math.PI/180,e=el*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(e),se=Math.sin(e);
+  return p=>{const X=p[0]*ca-p[1]*sa,Y=p[0]*sa+p[1]*ca,z=p[2];return[X,Y*se+z*ce,-Y*ce+z*se];};}
+const EL=["Li","Be","B","C","N","O","F","Ne"];
+const C0=D.cubes[0];
+const PH=[[4,"30 面体の中の正十二面体"],[4,"正四面体：水素"],[4,"鏡写しの正四面体"],[4,"合わせると立方体：ヘリウム"],[6,"立方体の 8 頂点：Li〜Ne"],[5,"二つ目の立方体：Na〜Ar"],[6,"正十二面体の中の 5 つの立方体"]];
+const TOT=PH.reduce((s,p)=>s+p[0],0);
+function seg(a,b,col,lw,al){ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.lineWidth=lw;ctx.globalAlpha=al;ctx.strokeStyle=col;ctx.stroke();ctx.globalAlpha=1;}
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const f=Math.min(1,u/PH[i][0]);
+  const V=view(18,-20-9*t);const S=230;const scr=q=>{const p=V(q);return[500+S*p[0],500-S*p[1]];};
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);ctx.lineCap="round";
+  D.RE.forEach(([a,b])=>seg(scr(D.RV[a]),scr(D.RV[b]),css("--faint"),1.2,0.5));
+  D.dE.forEach(([a,b])=>seg(scr(D.P[a]),scr(D.P[b]),css("--muted"),2,0.7));
+  const tetE=t4=>{const o=[];for(let a=0;a<4;a++)for(let b=a+1;b<4;b++)o.push([t4[a],t4[b]]);return o;};
+  if(i>=1&&i<=3){tetE(D.tets[0]).forEach(([a,b])=>seg(scr(D.P[a]),scr(D.P[b]),css("--t1"),6,i===1?f:1));}
+  if(i>=2&&i<=3){tetE(D.tets[1]).forEach(([a,b])=>seg(scr(D.P[a]),scr(D.P[b]),css("--t2"),6,i===2?f:1));}
+  if(i>=3){D.cE[0].forEach(([a,b])=>seg(scr(D.P[a]),scr(D.P[b]),css("--c0"),7,i===3?f:1));}
+  if(i>=5){const k=i===6?5:2;for(let c=1;c<k;c++){const al=(i===5||c>1)&&i!==6?f:1;D.cE[c].forEach(([a,b])=>seg(scr(D.P[a]),scr(D.P[b]),css("--c"+c),5,i===5?f:(i===6&&c>1?f:1)));}}
+  D.P.forEach((p,j)=>{const q=scr(p);ctx.beginPath();ctx.arc(q[0],q[1],8,0,7);ctx.fillStyle=css("--muted");ctx.fill();});
+  if(i>=4){const n=i===4?Math.min(8,Math.floor(f*9)):8;ctx.font="700 30px "+css("--body");
+    C0.slice(0,n).forEach((j,k)=>{const q=scr(D.P[j]);ctx.beginPath();ctx.arc(q[0],q[1],15,0,7);ctx.fillStyle=css("--c0");ctx.fill();ctx.fillStyle=css("--ink");ctx.fillText(EL[k],q[0]+18,q[1]-14);});}
+  document.getElementById("ph").textContent=PH[i][1];}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?TOT-1:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

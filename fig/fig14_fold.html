@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>伸ばして13で折り返す</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* 第14章：1 だけの違いを φ で伸ばすと立体の中で φ 倍ずつ遠ざかる。13 の番地で読むと折り返され、28 歩で戻る */
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --raw:#b0452a; --fold:#1f5fa8; --pt:#e0b030; --grid:#cfcabd;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --raw:#e0805f; --fold:#6f9fdc; --grid:#36403b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b; --raw:#e0805f; --fold:#6f9fdc; --grid:#36403b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;padding-inline:16px;padding-block:16px 28px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:560px;aspect-ratio:1/1;height:auto;justify-self:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px;min-width:0}
+.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+.kv b{font-family:var(--mono);font-weight:600;font-size:1rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--fold);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.35rem,4vw,1.8rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+p{margin:0;line-height:1.75}
+.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:2px;vertical-align:-.1em;margin-right:.2em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>伸ばして13で折り返す</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="1か所だけ違う二点の差を φ で伸ばすと、見える側では φ 倍に伸び窓の側では縮んで双曲線の上を跳び、13の番地で読むと169点の中で折り返されて28歩で元に戻る図"></canvas>
+    <div class="controls">
+      <button id="play">停止</button>
+      <button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label>
+    </div>
+    <div class="kv">
+      <div><span>歩</span><b id="st">—</b></div>
+      <div><span>差の係数の最大</span><b id="mx">—</b></div>
+      <div><span>13 で読んだ差の番地・点の数</span><b id="lb">—</b></div>
+    </div>
+  </div>
+  <p>二つの点が 6 個の整数のうち 1 か所だけ違うとします。両方に φ を掛け続けると、<span class="sw" style="background:var(--raw)"></span>差は一歩ごとに、立体の中（見える側）では φ 倍に伸び、窓の側では −1/φ 倍に縮みます。横に見える側の長さ、縦に窓の側の長さをとると、点は双曲線の上を跳びながら遠ざかります。差の係数の最大は 1, 1, 2, 3, 5, 8, 13, … とフィボナッチ数で増えます（横は大きさに合わせて縮めています）。</p>
+  <p>t 歩目の差は、フィボナッチ数を使って F(t−1)·d ＋ F(t)·Φd と書けます（d は最初の差、Φd はそれに φ を掛けたもの）。そこで差を 13 の番地で読むことは、二つのフィボナッチ数を 13 で割った余りの組 (F(t−1), F(t)) を読むことになります。余りの組は 13 × 13 ＝ 169 個のます目の中に留まり、<span class="sw" style="background:var(--fold)"></span>0, 1, 1, 2, 3, 5, 8, 0, 8, 8, 3, 11, … と折り返しながら進んで、28 歩でちょうど (0, 1) に戻ります。そこから先は同じ道をもう一度たどります。ほかの組から始めると、0 以外の 168 個のます目は、長さ 28 の輪 6 本にちょうど分かれます。</p>
+  <p class="note">伸ばす操作と 13 の番地はすべて整数で計算しています。点の位置は、6 個の整数を見える側と窓の側の長さに直したもので、観察者側の表示として実数を使っています。</p>
+</div>
+<script>
+const D={"raw":[[1.0,1.0],[1.618,-0.618],[2.618,0.382],[4.2361,-0.2361],[6.8541,0.1459],[11.0902,-0.0902],[17.9443,0.0557],[29.0344,-0.0344],[46.9787,0.0213],[76.0132,-0.0132],[122.9919,0.0081],[199.005,-0.005],[321.9969,0.0031],[521.0019,-0.0019],[842.9988,0.0012],[1364.0007,-0.0007],[2206.9995,0.0005],[3571.0003,-0.0003],[5777.9998,0.0002],[9349.0001,-0.0001],[15126.9999,0.0001]],"mx":[1,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181,6765],"rings":[[[1.0,1.0],[1.618,-0.618],[2.618,0.382],[4.2361,-0.2361],[6.8541,0.1459],[11.0902,-0.0902],[-3.0902,8.0902],[-5.0,-5.0],[-8.0902,3.0902],[-13.0902,-1.9098],[-0.1459,-6.8541],[-0.2361,4.2361],[-0.382,-2.618],[-0.618,1.618],[-1.0,-1.0],[-1.618,0.618],[-2.618,-0.382],[-4.2361,0.2361],[-6.8541,-0.1459],[-11.0902,0.0902],[3.0902,-8.0902],[5.0,5.0],[8.0902,-3.0902],[13.0902,1.9098],[0.1459,6.8541],[0.2361,-4.2361],[0.382,2.618],[0.618,-1.618],[1.0,1.0]],[[-15.7082,-2.2918],[-4.382,-6.618],[-7.0902,4.0902],[-11.4721,-2.5279],[2.4721,-6.4721],[4.0,4.0],[6.4721,-2.4721],[10.4721,1.5279],[-4.0902,7.0902],[-6.618,-4.382],[-10.7082,2.7082],[3.7082,-9.7082],[6.0,6.0],[9.7082,-3.7082],[15.7082,2.2918],[4.382,6.618],[7.0902,-4.0902],[11.4721,2.5279],[-2.4721,6.4721],[-4.0,-4.0],[-6.4721,2.4721],[-10.4721,-1.5279],[4.0902,-7.0902],[6.618,4.382],[10.7082,-2.7082],[-3.7082,9.7082],[-6.0,-6.0],[-9.7082,3.7082],[-15.7082,-2.2918]],[[-14.0902,-2.9098],[-1.7639,-6.2361],[-2.8541,3.8541],[-4.618,-2.382],[-7.4721,1.4721],[-12.0902,-0.9098],[1.4721,-7.4721],[2.382,4.618],[3.8541,-2.8541],[6.2361,1.7639],[10.0902,-1.0902],[-4.7082,8.7082],[-7.618,-5.382],[8.7082,-4.7082],[14.0902,2.9098],[1.7639,6.2361],[2.8541,-3.8541],[4.618,2.382],[7.4721,-1.4721],[12.0902,0.9098],[-1.4721,7.4721],[-2.382,-4.618],[-3.8541,2.8541],[-6.2361,-1.7639],[-10.0902,1.0902],[4.7082,-8.7082],[7.618,5.382],[-8.7082,4.7082],[-14.0902,-2.9098]],[[-12.4721,-3.5279],[0.8541,-5.8541],[1.382,3.618],[2.2361,-2.2361],[3.618,1.382],[5.8541,-0.8541],[9.4721,0.5279],[-5.7082,7.7082],[-9.2361,-4.7639],[6.0902,-5.0902],[9.8541,3.1459],[-5.0902,6.0902],[-8.2361,-3.7639],[7.7082,-5.7082],[12.4721,3.5279],[-0.8541,5.8541],[-1.382,-3.618],[-2.2361,2.2361],[-3.618,-1.382],[-5.8541,0.8541],[-9.4721,-0.5279],[5.7082,-7.7082],[9.2361,4.7639],[-6.0902,5.0902],[-9.8541,-3.1459],[5.0902,-6.0902],[8.2361,3.7639],[-7.7082,5.7082],[-12.4721,-3.5279]],[[-10.8541,-4.1459],[3.4721,-5.4721],[5.618,3.382],[9.0902,-2.0902],[14.7082,1.2918],[2.7639,7.2361],[4.4721,-4.4721],[7.2361,2.7639],[11.7082,-1.7082],[-2.0902,9.0902],[-3.382,-5.618],[-5.4721,3.4721],[-8.8541,-2.1459],[6.7082,-6.7082],[10.8541,4.1459],[-3.4721,5.4721],[-5.618,-3.382],[-9.0902,2.0902],[-14.7082,-1.2918],[-2.7639,-7.2361],[-4.4721,4.4721],[-7.2361,-2.7639],[-11.7082,1.7082],[2.0902,-9.0902],[3.382,5.618],[5.4721,-3.4721],[8.8541,2.1459],[-6.7082,6.7082],[-10.8541,-4.1459]],[[-1.1459,-7.8541],[-1.8541,4.8541],[-3.0,-3.0],[-4.8541,1.8541],[-7.8541,-1.1459],[-12.7082,0.7082],[0.4721,-8.4721],[0.7639,5.2361],[1.2361,-3.2361],[2.0,2.0],[3.2361,-1.2361],[5.2361,0.7639],[8.4721,-0.4721],[13.7082,0.2918],[1.1459,7.8541],[1.8541,-4.8541],[3.0,3.0],[4.8541,-1.8541],[7.8541,1.1459],[12.7082,-0.7082],[-0.4721,8.4721],[-0.7639,-5.2361],[-1.2361,3.2361],[-2.0,-2.0],[-3.2361,1.2361],[-5.2361,-0.7639],[-8.4721,0.4721],[-13.7082,-0.2918],[-1.1459,-7.8541]]],"grid":[[-15.7082,-2.2918],[-14.0902,-2.9098],[-12.4721,-3.5279],[-10.8541,-4.1459],[-9.2361,-4.7639],[-7.618,-5.382],[-6.0,-6.0],[-4.382,-6.618],[-2.7639,-7.2361],[-1.1459,-7.8541],[0.4721,-8.4721],[2.0902,-9.0902],[3.7082,-9.7082],[-14.7082,-1.2918],[-13.0902,-1.9098],[-11.4721,-2.5279],[-9.8541,-3.1459],[-8.2361,-3.7639],[-6.618,-4.382],[-5.0,-5.0],[-3.382,-5.618],[-1.7639,-6.2361],[-0.1459,-6.8541],[1.4721,-7.4721],[3.0902,-8.0902],[4.7082,-8.7082],[-13.7082,-0.2918],[-12.0902,-0.9098],[-10.4721,-1.5279],[-8.8541,-2.1459],[-7.2361,-2.7639],[-5.618,-3.382],[-4.0,-4.0],[-2.382,-4.618],[-0.7639,-5.2361],[0.8541,-5.8541],[2.4721,-6.4721],[4.0902,-7.0902],[5.7082,-7.7082],[-12.7082,0.7082],[-11.0902,0.0902],[-9.4721,-0.5279],[-7.8541,-1.1459],[-6.2361,-1.7639],[-4.618,-2.382],[-3.0,-3.0],[-1.382,-3.618],[0.2361,-4.2361],[1.8541,-4.8541],[3.4721,-5.4721],[5.0902,-6.0902],[6.7082,-6.7082],[-11.7082,1.7082],[-10.0902,1.0902],[-8.4721,0.4721],[-6.8541,-0.1459],[-5.2361,-0.7639],[-3.618,-1.382],[-2.0,-2.0],[-0.382,-2.618],[1.2361,-3.2361],[2.8541,-3.8541],[4.4721,-4.4721],[6.0902,-5.0902],[7.7082,-5.7082],[-10.7082,2.7082],[-9.0902,2.0902],[-7.4721,1.4721],[-5.8541,0.8541],[-4.2361,0.2361],[-2.618,-0.382],[-1.0,-1.0],[0.618,-1.618],[2.2361,-2.2361],[3.8541,-2.8541],[5.4721,-3.4721],[7.0902,-4.0902],[8.7082,-4.7082],[-9.7082,3.7082],[-8.0902,3.0902],[-6.4721,2.4721],[-4.8541,1.8541],[-3.2361,1.2361],[-1.618,0.618],[0.0,0.0],[1.618,-0.618],[3.2361,-1.2361],[4.8541,-1.8541],[6.4721,-2.4721],[8.0902,-3.0902],[9.7082,-3.7082],[-8.7082,4.7082],[-7.0902,4.0902],[-5.4721,3.4721],[-3.8541,2.8541],[-2.2361,2.2361],[-0.618,1.618],[1.0,1.0],[2.618,0.382],[4.2361,-0.2361],[5.8541,-0.8541],[7.4721,-1.4721],[9.0902,-2.0902],[10.7082,-2.7082],[-7.7082,5.7082],[-6.0902,5.0902],[-4.4721,4.4721],[-2.8541,3.8541],[-1.2361,3.2361],[0.382,2.618],[2.0,2.0],[3.618,1.382],[5.2361,0.7639],[6.8541,0.1459],[8.4721,-0.4721],[10.0902,-1.0902],[11.7082,-1.7082],[-6.7082,6.7082],[-5.0902,6.0902],[-3.4721,5.4721],[-1.8541,4.8541],[-0.2361,4.2361],[1.382,3.618],[3.0,3.0],[4.618,2.382],[6.2361,1.7639],[7.8541,1.1459],[9.4721,0.5279],[11.0902,-0.0902],[12.7082,-0.7082],[-5.7082,7.7082],[-4.0902,7.0902],[-2.4721,6.4721],[-0.8541,5.8541],[0.7639,5.2361],[2.382,4.618],[4.0,4.0],[5.618,3.382],[7.2361,2.7639],[8.8541,2.1459],[10.4721,1.5279],[12.0902,0.9098],[13.7082,0.2918],[-4.7082,8.7082],[-3.0902,8.0902],[-1.4721,7.4721],[0.1459,6.8541],[1.7639,6.2361],[3.382,5.618],[5.0,5.0],[6.618,4.382],[8.2361,3.7639],[9.8541,3.1459],[11.4721,2.5279],[13.0902,1.9098],[14.7082,1.2918],[-3.7082,9.7082],[-2.0902,9.0902],[-0.4721,8.4721],[1.1459,7.8541],[2.7639,7.2361],[4.382,6.618],[6.0,6.0],[7.618,5.382],[9.2361,4.7639],[10.8541,4.1459],[12.4721,3.5279],[14.0902,2.9098],[15.7082,2.2918]],"lab":["(0, 0, 0, 0, 0, 1)","(1, 0, -1, -1, 0, 0)","(1, 0, -1, -1, 0, 1)","(2, 0, -2, -2, 0, 1)","(3, 0, -3, -3, 0, 2)","(5, 0, -5, -5, 0, 3)","(-5, 0, 5, 5, 0, 5)","(0, 0, 0, 0, 0, -5)","(-5, 0, 5, 5, 0, 0)","(-5, 0, 5, 5, 0, -5)","(3, 0, -3, -3, 0, -5)","(-2, 0, 2, 2, 0, 3)","(1, 0, -1, -1, 0, -2)","(-1, 0, 1, 1, 0, 1)","(0, 0, 0, 0, 0, -1)","(-1, 0, 1, 1, 0, 0)","(-1, 0, 1, 1, 0, -1)","(-2, 0, 2, 2, 0, -1)","(-3, 0, 3, 3, 0, -2)","(-5, 0, 5, 5, 0, -3)","(5, 0, -5, -5, 0, -5)","(0, 0, 0, 0, 0, 5)","(5, 0, -5, -5, 0, 0)","(5, 0, -5, -5, 0, 5)","(-3, 0, 3, 3, 0, 5)","(2, 0, -2, -2, 0, -3)","(-1, 0, 1, 1, 0, 2)","(1, 0, -1, -1, 0, -1)","(0, 0, 0, 0, 0, 1)"]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const N1=20,PER1=0.7,T1=N1*PER1;const PER2=0.32;const R1=28*PER2,R2=28*PER2,R3=5*28*PER2*0.5;const T2=T1+2,TOT=T2+R1+R2+R3+6;
+const RC=["#e0b030","#1f5fa8","#b0452a","#3d7d4f","#7a5ca8","#2a8a8a"];
+function axes(ox,oy){ctx.strokeStyle=css("--grid");ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(60,oy);ctx.lineTo(940,oy);ctx.moveTo(ox,60);ctx.lineTo(ox,940);ctx.stroke();
+  ctx.font="600 26px "+css("--body");ctx.fillStyle=css("--muted");ctx.fillText("見える側（立体の中の長さ）→",520,oy+40);ctx.save();ctx.translate(ox-18,330);ctx.rotate(-Math.PI/2);ctx.fillText("窓の側 →",0,0);ctx.restore();}
+function caption(s){ctx.font="700 30px "+css("--body");ctx.fillStyle=css("--ink");ctx.fillText(s,40,52);}
+function ringPath(pts,n,col,lw,alpha){ctx.beginPath();pts.slice(0,n+1).forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.lineWidth=lw;ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.stroke();ctx.globalAlpha=1;
+  pts.slice(0,Math.min(n+1,28)).forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],7,0,7);ctx.fillStyle=col;ctx.fill();});}
+function draw(t){ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);ctx.lineCap="round";ctx.lineJoin="round";
+  if(t<T2){const k=Math.min(N1,Math.floor(t/PER1));let X=1;for(let i=0;i<=k;i++)X=Math.max(X,Math.abs(D.raw[i][0]));
+    const sx=380/X,sy=300,ox=120,oy=500;const scr=p=>[ox+sx*p[0],oy-sy*p[1]];axes(ox,oy);
+    ctx.strokeStyle=css("--grid");ctx.setLineDash([8,8]);[1,-1].forEach(c=>{ctx.beginPath();let f=true;for(let x=0.2;x<=X*1.05;x*=1.03){const p=scr([x,c/x]);if(Math.abs(p[1]-oy)>460)continue;f?ctx.moveTo(...p):ctx.lineTo(...p);f=false;}ctx.stroke();});ctx.setLineDash([]);
+    for(let i=0;i<=k;i++){const p=scr(D.raw[i]);ctx.globalAlpha=i===k?1:0.45;ctx.beginPath();ctx.arc(p[0],p[1],i===k?13:7,0,7);ctx.fillStyle=css("--raw");ctx.fill();ctx.globalAlpha=1;}
+    caption("伸ばす：見える側は φ 倍、窓の側は −1/φ 倍");
+    ctx.font="600 28px "+css("--mono");ctx.fillStyle=css("--muted");ctx.fillText("横の縮尺 × "+(sx/380).toPrecision(2),40,960);
+    document.getElementById("st").textContent=k+" 歩目（伸ばす）";document.getElementById("mx").textContent=D.mx[k];document.getElementById("lb").textContent="—";return;}
+  // 13 で読む：差 ＝ F(t−1)·d ＋ F(t)·Φd。番地は二つのフィボナッチ数を 13 で割った余りの組
+  const ox=170,oy=830,G=50;const sq=(a,b)=>[ox+G*a,oy-G*b];
+  ctx.strokeStyle=css("--grid");ctx.lineWidth=1;
+  for(let i=0;i<13;i++){for(let j=0;j<13;j++){const p=sq(i,j);ctx.beginPath();ctx.arc(p[0],p[1],4,0,7);ctx.fillStyle=css("--grid");ctx.fill();}}
+  ctx.font="600 24px "+css("--mono");ctx.fillStyle=css("--muted");ctx.textAlign="center";
+  for(let i=0;i<13;i+=3){ctx.fillText(i,sq(i,0)[0],oy+38);}ctx.textAlign="right";for(let j=0;j<13;j+=3){ctx.fillText(j,ox-18,sq(0,j)[1]+8);}ctx.textAlign="left";
+  ctx.font="600 24px "+css("--body");ctx.fillText("F(t−1) を 13 で割った余り →",ox+150,oy+72);
+  ctx.save();ctx.translate(ox-60,oy-150);ctx.rotate(-Math.PI/2);ctx.fillText("F(t) の余り →",0,0);ctx.restore();
+  const fib=[0,1];for(let i=0;i<200;i++)fib.push((fib[fib.length-1]+fib[fib.length-2])%13);
+  const u=t-T2;
+  const ring=(a,b,n,col,lw,al,dots)=>{let x=a,y=b;const P=[sq(x,y)];for(let i=0;i<n;i++){const z=(x+y)%13;x=y;y=z;P.push(sq(x,y));}
+    ctx.beginPath();P.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.lineWidth=lw;ctx.globalAlpha=al;ctx.strokeStyle=col;ctx.stroke();ctx.globalAlpha=1;
+    if(dots)P.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],7,0,7);ctx.fillStyle=col;ctx.fill();});return P;};
+  if(u<R1+R2){const n=Math.floor(u/PER2);const k=n%28;const lap=n>=28;
+    if(lap)ring(0,1,28,css("--fold"),3,0.3,true);
+    const P=ring(0,1,lap?k:n,lap?css("--ink"):css("--fold"),3.4,0.85,true);const p=P[P.length-1];ctx.beginPath();ctx.arc(p[0],p[1],13,0,7);ctx.fillStyle=lap?css("--ink"):css("--fold");ctx.fill();
+    caption(lap?"29 歩目からは同じ道をもう一度（周期 28）":"13 で読む：フィボナッチ数を 13 で割った余り");
+    ctx.font="600 26px "+css("--mono");ctx.fillStyle=css("--ink");const sh=fib.slice(Math.max(0,n-13),n+1).join(" ");ctx.fillText("… "+sh,40,100);
+    document.getElementById("st").textContent=n+" 歩目（13 で読む）";document.getElementById("lb").textContent="("+fib[n]+", "+fib[n+1]+")";document.getElementById("mx").textContent=n<=20?D.mx[n]:"—";return;}
+  const v=u-R1-R2;const m=Math.min(6,1+Math.floor(v/(28*PER2*0.5)));
+  const starts=[[0,1]];const seen=new Set();let x=0,y=1;for(let i=0;i<28;i++){seen.add(x+","+y);const z=(x+y)%13;x=y;y=z;}
+  for(let a=0;a<13&&starts.length<6;a++)for(let b=0;b<13&&starts.length<6;b++){if(a===0&&b===0)continue;if(seen.has(a+","+b))continue;starts.push([a,b]);let x=a,y=b;for(let i=0;i<28;i++){seen.add(x+","+y);const z=(x+y)%13;x=y;y=z;}}
+  for(let r=0;r<m;r++){const full=r<m-1||v>=5*28*PER2*0.5;const n=full?28:Math.floor((v-(r-1)*28*PER2*0.5)/(PER2*0.5));ring(starts[r][0],starts[r][1],r===0?28:Math.min(28,n),RC[r],2.4,0.8,true);}
+  caption("ほかの組から始めても：168 個は長さ 28 の輪 6 本");
+  document.getElementById("st").textContent="輪 "+m+" / 6";document.getElementById("lb").textContent=(m*28)+" / 168 個";}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;
+  if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?TOT-1:0);requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<title>600胞体の影の30面体</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#efede6; --panel:#f8f7f2; --ink:#1e2724; --muted:#5d6660; --rule:#cfcabd;
+  --ico:#1f5fa8; --dod:#b0452a; --mix:#3d7d4f; --face:#e0b030;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b;
+  --ico:#6f9fdc; --dod:#e0805f; --mix:#6fbf86; --face:#e8b440; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --panel:#1d2421; --ink:#e6ebe7; --muted:#9aa6a0; --rule:#36403b;
+  --ico:#6f9fdc; --dod:#e0805f; --mix:#6fbf86; --face:#e8b440; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+.wrap{max-width:780px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,4vw,1.75rem);margin:0;text-wrap:balance}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:620px;aspect-ratio:1/1;height:auto;justify-self:center}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ico);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}.kv b{font-family:var(--mono);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem;align-items:center}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;vertical-align:-.05em;margin-right:5px}
+p{margin:0;line-height:1.75}.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+<div class="wrap">
+  <h1>600胞体の影の30面体</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="600胞体を4番目の座標wで切った9枚の切り口を順に見せ、w=1/2の正十二面体とw=1/(2φ)の正二十面体を重ねると黄金のひし形30面体になる図"></canvas>
+    <div class="controls"><button id="play">停止</button><button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label></div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div><div><span>切り口</span><b id="st">—</b></div></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--ico)"></span>w ＝ 1/(2φ) の切り口（12 点）</span>
+      <span><span class="dot" style="background:var(--dod)"></span>w ＝ 1/2 の切り口（20 点）</span>
+    </div>
+  </div>
+  <p>4 次元の 600 胞体の頂点 120 個を、4 番目の座標 w で切ります。切り口の点の数は、上から 1・12・20・12・30・12・20・12・1 で、形は点・正二十面体・正十二面体・正二十面体・十二・二十面体と並び、真ん中から下は鏡に映したように戻ります。</p>
+  <p>このうち、w ＝ 1/2 の正十二面体（20 点）と、w ＝ 1/(2φ) の正二十面体（12 点）を取り出し、w を落として 3 次元に重ねます。これが 4 次元から見た影です。重ねた 32 点をいちばん短い距離で結ぶと、辺 60 本、ひし形の面 30 枚の黄金のひし形 30 面体になります。この本の第 1 章から積み木にしてきた立体です。</p>
+  <p class="note">切り口の数、辺と面の数、二つの切り口の大きさの比が第 1 章の 30 面体と一致することは、a ＋ b√5 の整数の組で確かめています（ch19_shadow.py）。画面の位置は観察者側の表示です。</p>
+</div>
+<script>
+const D={"ws": [1.0, 0.8090169943749475, 0.5, 0.30901699437494745, 0.0, -0.30901699437494745, -0.5, -0.8090169943749475, -1.0], "slices": [[[0.0, 0.0, 0.0]], [[-0.5, 0.0, 0.309017], [-0.5, 0.0, -0.309017], [0.309017, -0.5, 0.0], [0.309017, 0.5, 0.0], [0.0, 0.309017, -0.5], [0.0, 0.309017, 0.5], [0.0, -0.309017, -0.5], [0.0, -0.309017, 0.5], [-0.309017, -0.5, 0.0], [-0.309017, 0.5, 0.0], [0.5, 0.0, 0.309017], [0.5, 0.0, -0.309017]], [[-0.5, -0.5, -0.5], [-0.5, -0.5, 0.5], [-0.5, 0.5, -0.5], [-0.5, 0.5, 0.5], [-0.809017, 0.309017, 0.0], [-0.809017, -0.309017, 0.0], [0.309017, 0.0, -0.809017], [0.309017, 0.0, 0.809017], [0.0, -0.809017, 0.309017], [0.0, -0.809017, -0.309017], [0.0, 0.809017, 0.309017], [0.0, 0.809017, -0.309017], [-0.309017, 0.0, -0.809017], [-0.309017, 0.0, 0.809017], [0.809017, 0.309017, 0.0], [0.809017, -0.309017, 0.0], [0.5, -0.5, -0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5], [0.5, 0.5, 0.5]], [[-0.5, -0.809017, 0.0], [-0.5, 0.809017, 0.0], [-0.809017, 0.0, -0.5], [-0.809017, 0.0, 0.5], [0.0, -0.5, -0.809017], [0.0, -0.5, 0.809017], [0.0, 0.5, -0.809017], [0.0, 0.5, 0.809017], [0.809017, 0.0, -0.5], [0.809017, 0.0, 0.5], [0.5, -0.809017, 0.0], [0.5, 0.809017, 0.0]], [[-1.0, 0.0, 0.0], [-0.5, 0.309017, -0.809017], [-0.5, 0.309017, 0.809017], [-0.5, -0.309017, -0.809017], [-0.5, -0.309017, 0.809017], [-0.809017, -0.5, 0.309017], [-0.809017, -0.5, -0.309017], [-0.809017, 0.5, 0.309017], [-0.809017, 0.5, -0.309017], [0.309017, -0.809017, -0.5], [0.309017, -0.809017, 0.5], [0.309017, 0.809017, -0.5], [0.309017, 0.809017, 0.5], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [-0.309017, -0.809017, -0.5], [-0.309017, -0.809017, 0.5], [-0.309017, 0.809017, -0.5], [-0.309017, 0.809017, 0.5], [0.809017, -0.5, 0.309017], [0.809017, -0.5, -0.309017], [0.809017, 0.5, 0.309017], [0.809017, 0.5, -0.309017], [0.5, 0.309017, -0.809017], [0.5, 0.309017, 0.809017], [0.5, -0.309017, -0.809017], [0.5, -0.309017, 0.809017], [1.0, 0.0, 0.0]], [[-0.5, -0.809017, 0.0], [-0.5, 0.809017, 0.0], [-0.809017, 0.0, -0.5], [-0.809017, 0.0, 0.5], [0.0, -0.5, -0.809017], [0.0, -0.5, 0.809017], [0.0, 0.5, -0.809017], [0.0, 0.5, 0.809017], [0.809017, 0.0, -0.5], [0.809017, 0.0, 0.5], [0.5, -0.809017, 0.0], [0.5, 0.809017, 0.0]], [[-0.5, -0.5, -0.5], [-0.5, -0.5, 0.5], [-0.5, 0.5, -0.5], [-0.5, 0.5, 0.5], [-0.809017, 0.309017, 0.0], [-0.809017, -0.309017, 0.0], [0.309017, 0.0, -0.809017], [0.309017, 0.0, 0.809017], [0.0, -0.809017, 0.309017], [0.0, -0.809017, -0.309017], [0.0, 0.809017, 0.309017], [0.0, 0.809017, -0.309017], [-0.309017, 0.0, -0.809017], [-0.309017, 0.0, 0.809017], [0.809017, 0.309017, 0.0], [0.809017, -0.309017, 0.0], [0.5, -0.5, -0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5], [0.5, 0.5, 0.5]], [[-0.5, 0.0, 0.309017], [-0.5, 0.0, -0.309017], [0.309017, -0.5, 0.0], [0.309017, 0.5, 0.0], [0.0, 0.309017, -0.5], [0.0, 0.309017, 0.5], [0.0, -0.309017, -0.5], [0.0, -0.309017, 0.5], [-0.309017, -0.5, 0.0], [-0.309017, 0.5, 0.0], [0.5, 0.0, 0.309017], [0.5, 0.0, -0.309017]], [[0.0, 0.0, 0.0]]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+function edgesOf(P){if(P.length<2)return[];let m=1e9;for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++)m=Math.min(m,dist(P[i],P[j]));const E=[];for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++)if(dist(P[i],P[j])<m*1.001)E.push([i,j]);return E;}
+const SL=D.slices,WS=D.ws,SE=SL.map(edgesOf);
+const DOD=SL[2],ICO=SL[3];const U=[...ICO,...DOD];const UE=edgesOf(U);
+const nb=U.map((_,k)=>new Set(UE.filter(e=>e.includes(k)).map(e=>e[0]===k?e[1]:e[0])));
+const FACES=[];for(let a=0;a<12;a++)for(let b=a+1;b<12;b++){const c=[...nb[a]].filter(x=>nb[b].has(x));if(c.length===2)FACES.push([a,c[0],b,c[1]]);}
+const NAMES=["点","正二十面体","正十二面体","正二十面体","十二・二十面体","正二十面体","正十二面体","正二十面体","点"];
+const PH=[[15,"slice"],[5,"lift"],[5,"drop"],[12,"rt"]];const TOT=PH.reduce((s,p)=>s+p[0],0);
+const ease=x=>x<0?0:x>1?1:x*x*(3-2*x);
+const wtxt=["1","φ/2","1/2","1/(2φ)","0","−1/(2φ)","−1/2","−φ/2","−1"];
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const sc=PH[i][1],f=Math.min(1,u/PH[i][0]);
+  const yaw=0.5+t*0.18,pitch=0.32;const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const S=300;const scr=(p,dy=0)=>{const x=p[0]*cy+p[1]*sy,z0=-p[0]*sy+p[1]*cy;const y=p[2]*cp-z0*sp,z=p[2]*sp+z0*cp;return[500+S*x,500-S*y-dy,z];};
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const L=[],P=[];let ph="",st="";
+  const ink=css("--ink"),ico=css("--ico"),dod=css("--dod");
+  // w のものさし
+  const gauge=(hi)=>{ctx.save();ctx.strokeStyle=css("--rule");ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(950,140);ctx.lineTo(950,860);ctx.stroke();
+    WS.forEach((w,k)=>{const y=500-360*w;ctx.beginPath();ctx.arc(950,y,hi.includes(k)?11:6,0,7);ctx.fillStyle=hi.includes(k)?(k===2?dod:k===3?ico:ink):css("--muted");ctx.fill();});
+    ctx.font="600 22px "+css("--mono");ctx.fillStyle=css("--muted");ctx.fillText("w",940,120);ctx.restore();};
+  if(sc==="slice"){const k=Math.min(8,Math.floor(f*9));const P0=SL[k];const col=k===2||k===6?dod:(k===4?css("--mix"):ico);
+    SE[k].forEach(([a,b])=>L.push({a:scr(P0[a]),b:scr(P0[b]),col,w:3}));P0.forEach(p=>P.push({q:scr(p),col,r:8}));
+    gauge([k]);ph="600胞体を w で切る";st="w ＝ "+wtxt[k]+"："+NAMES[k]+"（"+P0.length+" 点）";}
+  if(sc==="lift"||sc==="drop"){const sep=sc==="lift"?ease(f)*230:(1-ease(f))*230;
+    SE[2].forEach(([a,b])=>L.push({a:scr(DOD[a],sep),b:scr(DOD[b],sep),col:dod,w:2.4,al:0.7}));SE[3].forEach(([a,b])=>L.push({a:scr(ICO[a],-sep),b:scr(ICO[b],-sep),col:ico,w:2.4,al:0.7}));
+    DOD.forEach(p=>P.push({q:scr(p,sep),col:dod,r:8}));ICO.forEach(p=>P.push({q:scr(p,-sep),col:ico,r:9}));
+    gauge([2,3]);ph=sc==="lift"?"二枚の切り口を取り出す":"w を落として重ねる（影）";st="w ＝ 1/2 の 20 点と w ＝ 1/(2φ) の 12 点";}
+  if(sc==="rt"){const g=ease(f*2);
+    FACES.forEach(F=>{const Q=F.map(k=>scr(U[k]));L.push({face:Q,z:Q.reduce((s,q)=>s+q[2],0)/4});});
+    UE.forEach(([a,b])=>L.push({a:scr(U[a]),b:scr(U[b]),col:ink,w:2.6,al:g}));
+    U.forEach((p,k)=>P.push({q:scr(p),col:k<12?ico:dod,r:k<12?9:7}));
+    ph="黄金のひし形 30 面体";st="頂点 32・辺 "+UE.length+"・面 "+FACES.length;}
+  const items=L.map(it=>it.face?it:{...it,z:(it.a[2]+it.b[2])/2});items.sort((a,b)=>a.z-b.z);
+  for(const it of items){if(it.face){ctx.beginPath();it.face.forEach((q,j)=>j?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.globalAlpha=0.45;ctx.fillStyle=css("--face");ctx.fill();ctx.globalAlpha=1;continue;}
+    ctx.globalAlpha=(it.al??1)*(0.35+0.65*(it.z+1.2)/2.4);ctx.strokeStyle=it.col;ctx.lineWidth=it.w;ctx.beginPath();ctx.moveTo(it.a[0],it.a[1]);ctx.lineTo(it.b[0],it.b[1]);ctx.stroke();ctx.globalAlpha=1;}
+  P.sort((a,b)=>a.q[2]-b.q[2]).forEach(p=>{ctx.beginPath();ctx.arc(p.q[0],p.q[1],p.r,0,7);ctx.fillStyle=p.col;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=css("--panel");ctx.stroke();});
+  document.getElementById("ph").textContent=ph;document.getElementById("st").textContent=st;}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?TOT-3:0);requestAnimationFrame(loop);
+</script>

@@ -1,0 +1,121 @@
+<title>整数球が作る共焦点曲面</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f2ee; --panel:#fbfaf7; --ink:#1d2224; --muted:#5f666a; --rule:#d5d3cc; --grid:#c9c9c9;
+  --ell:#2f6db0; --hyp:#c0392b; --par:#111111;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141719; --panel:#1b1f22; --ink:#e7eaec; --muted:#9aa3a8; --rule:#343a3e; --grid:#3d4448;
+  --ell:#6fa3e0; --hyp:#e8705f; --par:#e7eaec; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141719; --panel:#1b1f22; --ink:#e7eaec; --muted:#9aa3a8; --rule:#343a3e; --grid:#3d4448;
+  --ell:#6fa3e0; --hyp:#e8705f; --par:#e7eaec; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+.wrap{max-width:780px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,4vw,1.75rem);margin:0;text-wrap:balance}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:620px;aspect-ratio:1/1;height:auto;justify-self:center}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ell);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}.kv b{font-family:var(--mono);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem}
+.legend i{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}
+p{margin:0;line-height:1.75}.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+<div class="wrap">
+  <h1>整数球が作る共焦点曲面</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="二つの中心AとBのまわりの整数半径の同心円の交点が楕円と双曲線を決める平面の図を、ABを軸に回して楕円体と双曲面にする図"></canvas>
+    <div class="controls"><button id="play">停止</button><button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label></div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div><div><span>回した角度</span><b id="st">—</b></div></div>
+    <div class="legend">
+      <span><i style="background:var(--ell)"></i>楕円体　和 j ＝ m ＋ n　e ＝ N/j（＜1）</span>
+      <span><i style="background:var(--hyp)"></i>双曲面　差 k ＝ m − n　e ＝ N/k（＞1）</span>
+      <span><i style="background:var(--par)"></i>AB の線分　e ＝ 1（境界）</span>
+    </div>
+  </div>
+  <p>A と B のまわりに、半径 m·d と n·d（m, n は整数）の同心円を描きます。AB の長さは N·d で、ここでは N ＝ 4 です。二つの円の交点のうち、和 j ＝ m ＋ n が同じ点は楕円の上に、差 k ＝ m − n が同じ点は双曲線の上に並びます。離心率は楕円が N/j、双曲線が N/k で、どれも整数の比です。</p>
+  <p>この平面の図を、AB を軸にして奥へ半回転させます。同心円は同心球になり、楕円は楕円体、双曲線は双曲面になります。網目の輪は、整数の半径の球どうしが交わる円で、縦の線は回した平面の写し（30° ごと）です。手前の半分は切り取ってあり、切り口が最初の平面の図です。</p>
+  <p class="note">j ＝ N の楕円は AB の線分につぶれ、|k| ＝ N の双曲線は A と B から外へ延びる半直線につぶれます。離心率 1 は、楕円体と双曲面の境目です。</p>
+</div>
+<script>
+const N=4, M=10, c=N/2;                   // 単位 d=1、A=(−c,0,0)、B=(c,0,0)
+const EJ=[5,8,10], HK=[-3,-2,-1,1,2,3];
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const frac=(p,q)=>{const g=(a,b)=>b?g(b,a%b):a;const h=g(Math.abs(p),Math.abs(q));p/=h;q/=h;return q===1?""+p:p+"/"+q;};
+// A からの半径 m、B からの半径 n の円の交点（子午面の (x, ρ)）
+function meet(m,n){const xa=(m*m-n*n+N*N)/(2*N);const r2=m*m-xa*xa;return r2<-1e-9?null:[xa-c,Math.sqrt(Math.max(0,r2))];}
+// 曲線：滑らかな線と、整数の交点
+function curveE(j){const P=[],I=[];const m0=(j-N)/2,m1=(j+N)/2;for(let s=0;s<=160;s++){const m=m0+(m1-m0)*(1-Math.cos(Math.PI*s/160))/2;const p=meet(m,j-m);if(p)P.push(p);}
+  for(let m=Math.ceil(m0);m<=m1;m++){const p=meet(m,j-m);if(p&&p[1]>1e-6)I.push(p);}return{P,I};}
+function curveH(k){const P=[],I=[];const a=Math.abs(k);const v=(N+a)/2;for(let s=0;s<=160;s++){const t=s/160;const big=v+(M-v)*t*t;const small=big-a;const p=k>0?meet(big,small):meet(small,big);if(p)P.push(p);}
+  for(let big=Math.ceil(v);big<=M;big++){const small=big-a;const p=k>0?meet(big,small):meet(small,big);if(p&&p[1]>1e-6)I.push(p);}return{P,I};}
+const CE=EJ.map(curveE), CH=HK.map(curveH);
+const rot=(p,phi)=>[p[0],p[1]*Math.cos(phi),-p[1]*Math.sin(phi)]; // 奥の半分へ回す
+const PH=[[7,"plane"],[4,"tilt"],[11,"sweep"],[12,"spin"]];const TOT=PH.reduce((s,p)=>s+p[0],0);
+const ease=x=>x<0?0:x>1?1:x*x*(3-2*x);
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const sc=PH[i][1],f=Math.min(1,u/PH[i][0]);
+  let yaw=0,pitch=0,sweep=0;const Y3=-24,P3=30;
+  if(sc==="tilt"){yaw=Y3*ease(f);pitch=P3*ease(f);}
+  if(sc==="sweep"){yaw=Y3;pitch=P3;sweep=Math.PI*ease(f);}
+  if(sc==="spin"){yaw=Y3+16*Math.sin(2*Math.PI*f);pitch=P3+10*Math.sin(2*Math.PI*f+1);sweep=Math.PI;}
+  const ya=yaw*Math.PI/180,pa=pitch*Math.PI/180,cy=Math.cos(ya),sy=Math.sin(ya),cp=Math.cos(pa),sp=Math.sin(pa);
+  const S=sc==="plane"?44:40;
+  const scr=q=>{const X=q[0]*cy+q[2]*sy,Z0=-q[0]*sy+q[2]*cy;const Yv=q[1]*cp-Z0*sp,Z=q[1]*sp+Z0*cp;return[500+S*X,520-S*Yv,Z];};
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  const segs=[];const add=(a,b,col,w,al)=>segs.push({a:scr(a),b:scr(b),col,w,al});
+  const ell=css("--ell"),hyp=css("--hyp"),grid=css("--grid");
+  // 整数円（平面の段だけ）
+  const gridA=sc==="plane"?ease(f*2.5):sc==="tilt"?1-0.6*f:sc==="sweep"?0.4*(1-f):0;
+  if(gridA>0){for(const ctr of[-c,c])for(let r=1;r<=M;r++){for(let s=0;s<96;s++){const a0=Math.PI*2*s/96,a1=Math.PI*2*(s+1)/96;add([ctr+r*Math.cos(a0),r*Math.sin(a0),0],[ctr+r*Math.cos(a1),r*Math.sin(a1),0],grid,1.3,gridA);}}}
+  const draw2=sc==="plane"?ease((f-0.25)/0.6):1;
+  const curves=[...CE.map(C=>({C,col:ell})),...CH.map(C=>({C,col:hyp}))];
+  for(const {C,col} of curves){const P=C.P;const n=Math.max(1,Math.floor(draw2*(P.length-1)));
+    // 子午面の曲線（上と下）
+    for(const sgn of[1,-1])for(let s=0;s<n;s++)add([P[s][0],sgn*P[s][1],0],[P[s+1][0],sgn*P[s+1][1],0],col,3.6,1);
+    if(sweep>0){
+      // 回した写し（15°ごと）
+      for(let q=1;q<6;q++){const phi=Math.PI*q/6;if(phi>sweep+1e-6)continue;for(let s=0;s<P.length-1;s+=2){const e=Math.min(s+2,P.length-1);add(rot(P[s],phi),rot(P[e],phi),col,1.6,0.85);}}
+      // 整数の球どうしの交わりの円
+      for(const p of C.I){const K=Math.max(4,Math.ceil(36*sweep/Math.PI));for(let s=0;s<K;s++){const a0=sweep*s/K,a1=sweep*(s+1)/K;add(rot(p,a0),rot(p,a1),col,2,1);}}
+    }
+  }
+  // 整数の交点（平面）
+  const dots=[];if(sc!=="spin")for(const {C,col} of curves)for(const p of C.I)for(const sgn of[1,-1])dots.push({p:scr([p[0],sgn*p[1],0]),col});
+  // 奥から描く
+  let zmin=1e9,zmax=-1e9;segs.forEach(s=>{s.z=(s.a[2]+s.b[2])/2;zmin=Math.min(zmin,s.z);zmax=Math.max(zmax,s.z);});segs.sort((a,b)=>a.z-b.z);
+  const flat=sc==="plane"||(sc==="tilt"&&f<0.05);ctx.lineCap="round";
+  for(const s of segs){const k=flat||zmax-zmin<1e-6?1:(s.z-zmin)/(zmax-zmin);ctx.globalAlpha=s.al*(0.22+0.78*k);ctx.lineWidth=s.w*(0.6+0.6*k);ctx.strokeStyle=s.col;ctx.beginPath();ctx.moveTo(s.a[0],s.a[1]);ctx.lineTo(s.b[0],s.b[1]);ctx.stroke();}
+  ctx.globalAlpha=draw2;for(const d of dots){ctx.beginPath();ctx.arc(d.p[0],d.p[1],5,0,7);ctx.fillStyle=css("--panel");ctx.fill();ctx.lineWidth=2.4;ctx.strokeStyle=d.col;ctx.stroke();}ctx.globalAlpha=1;
+  // AB と焦点
+  const pa_=scr([-c,0,0]),pb_=scr([c,0,0]);ctx.lineWidth=5;ctx.strokeStyle=css("--par");ctx.beginPath();ctx.moveTo(pa_[0],pa_[1]);ctx.lineTo(pb_[0],pb_[1]);ctx.stroke();
+  ctx.font="700 30px "+css("--body");ctx.fillStyle=css("--ink");
+  for(const [n,p] of[["A",pa_],["B",pb_]]){ctx.beginPath();ctx.arc(p[0],p[1],10,0,7);ctx.fill();ctx.fillText(n,p[0]-10,p[1]+46);}
+  ctx.font="600 22px "+css("--mono");ctx.fillText("e = 1",(pa_[0]+pb_[0])/2-30,(pa_[1]+pb_[1])/2-14);
+  // 離心率の札
+  ctx.globalAlpha=draw2;ctx.font="600 24px "+css("--mono");
+  EJ.forEach((j,q)=>{const b=Math.sqrt((j/2)**2-c*c);const p=scr([0,b,0]);ctx.fillStyle=ell;ctx.fillText("e = "+frac(N,j),p[0]-40,p[1]-12);});
+  HK.filter(k=>k>0).forEach((k,q)=>{const P=CH[HK.indexOf(k)].P;const p=scr([P[P.length-1][0],P[P.length-1][1],0]);ctx.fillStyle=hyp;ctx.fillText("e = "+frac(N,k),p[0]-10,p[1]-10);});
+  ctx.globalAlpha=1;
+  document.getElementById("ph").textContent={plane:"平面：整数円の交点が楕円と双曲線を決める",tilt:"平面を傾ける",sweep:"AB を軸に回す",spin:"楕円体と双曲面"}[sc];
+  document.getElementById("st").textContent=Math.round(sweep*180/Math.PI)+"°";}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?TOT-6:0);requestAnimationFrame(loop);
+</script>

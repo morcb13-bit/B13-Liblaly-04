@@ -1,0 +1,120 @@
+<title>ギャスケットの銅の導線</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f1ec; --panel:#fbfaf7; --ink:#20211f; --muted:#62645f; --rule:#d6d2c8;
+  --cu1:#c06a2b; --cu2:#8f4a1e; --h:#4a7fb5; --new:#1f8a5b; --shared:#20211f;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151513; --panel:#1d1d1a; --ink:#ebe9e3; --muted:#a19e95; --rule:#38372f;
+  --cu1:#e08a4a; --cu2:#b8682f; --h:#7aa8dc; --new:#4fc08d; --shared:#ebe9e3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151513; --panel:#1d1d1a; --ink:#ebe9e3; --muted:#a19e95; --rule:#38372f;
+  --cu1:#e08a4a; --cu2:#b8682f; --h:#7aa8dc; --new:#4fc08d; --shared:#ebe9e3; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+.wrap{max-width:780px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,4vw,1.75rem);margin:0;text-wrap:balance}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:640px;aspect-ratio:1/1;height:auto;justify-self:center}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button{font:inherit;font-weight:700;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--h);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}
+.kv div{display:grid;gap:2px}.kv span{font-size:.78rem;color:var(--muted);letter-spacing:.06em}.kv b{font-family:var(--mono);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem;align-items:center}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;vertical-align:-.05em;margin-right:5px}
+p{margin:0;line-height:1.75}.note{font-size:.85rem;color:var(--muted);line-height:1.65}
+</style>
+<div class="wrap">
+  <h1>ギャスケットの銅の導線</h1>
+  <div class="box">
+    <canvas id="cv" width="1000" height="1000" aria-label="正四面体を3段のシェルピンスキーのギャスケットにして銅原子とし、辺を軸に倒して並べると、原子1個ごとに新しい点が29個増える図"></canvas>
+    <div class="controls"><button id="play">停止</button><button id="reset">はじめから</button>
+      <label for="speed">速さ <input id="speed" type="range" min="1" max="8" value="4"></label></div>
+    <div class="kv"><div><span>段階</span><b id="ph">—</b></div><div><span>数</span><b id="st">—</b></div></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--shared)"></span>隣と分け合う点（5）</span>
+      <span><span class="dot" style="background:var(--new)"></span>新しく持ち込む点（29）</span>
+    </div>
+  </div>
+  <p>第 16 章の正四面体（水素）の辺の中点を結ぶと、角に小さな正四面体が 4 つ残ります。これを 2 回繰り返した 3 段のギャスケット（小さな正四面体 16 個、点 34 個）を銅原子 1 個とします。点はどれも 6 個の整数の組のままです。</p>
+  <p>銅原子を、大きな辺の中点で折り返して隣に置きます。図では、その辺を軸に半回転して倒す動きで描いています。隣どうしは大きな辺 1 本の上の点 5 個を分け合い、2 個目からの原子は 1 個ごとに新しい点を 29 個持ち込みます。29 は銅の電子の数です。折り返す辺を一つおきに向かいの辺に替えると、原子の列はまっすぐな導線になります。</p>
+  <p class="note">どの点が分け合われ、どの点が新しいかは、6 個の整数の組を比べて決めています。画面の位置は、6 本の五回軸に整数を掛けて足した観察者側の表示です。</p>
+</div>
+<script>
+const D={"T0":[[-1,-1,-1,-1,-1,1],[-1,-1,1,1,1,-1],[1,1,-1,1,1,1],[1,1,1,-1,-1,-1]],"big":[[[-4,-4,-4,-4,-4,4],[-4,-4,4,4,4,-4],[4,4,-4,4,4,4],[4,4,4,-4,-4,-4]],[[-4,-4,4,4,4,-4],[-4,-4,-4,-4,-4,4],[-12,-12,4,-4,-4,-4],[-12,-12,-4,4,4,4]],[[-20,-20,-4,-4,-4,4],[-20,-20,4,4,4,-4],[-12,-12,-4,4,4,4],[-12,-12,4,-4,-4,-4]],[[-20,-20,4,4,4,-4],[-20,-20,-4,-4,-4,4],[-28,-28,4,-4,-4,-4],[-28,-28,-4,4,4,4]],[[-36,-36,-4,-4,-4,4],[-36,-36,4,4,4,-4],[-28,-28,-4,4,4,4],[-28,-28,4,-4,-4,-4]],[[-36,-36,4,4,4,-4],[-36,-36,-4,-4,-4,4],[-44,-44,4,-4,-4,-4],[-44,-44,-4,4,4,4]]]};
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+// 6 本の五回軸
+const c5=1/Math.sqrt(5),s5=2/Math.sqrt(5);
+const E=[[0,0,1]];for(let k=0;k<5;k++)E.push([s5*Math.cos(2*Math.PI*k/5),s5*Math.sin(2*Math.PI*k/5),c5]);
+const phys=a=>{const p=[0,0,0];for(let k=0;k<6;k++)for(let i=0;i<3;i++)p[i]+=a[k]*E[k][i]/2;return p;};
+const key=a=>a.join(",");
+const mid=(a,b)=>a.map((x,i)=>(x+b[i])/2);
+function gasket(big,m){let T=[big];for(let q=0;q<m-1;q++){const U=[];for(const t of T)for(let i=0;i<4;i++)U.push([t[i],...[0,1,2,3].filter(j=>j!==i).map(j=>mid(t[i],t[j]))]);T=U;}return T;}
+const ptsOf=T=>{const M=new Map();T.forEach(t=>t.forEach(p=>M.set(key(p),p)));return M;};
+// 原子
+const AT=D.big.map(b=>gasket(b,3));const PS=AT.map(ptsOf);
+const T0=D.T0.map(v=>v.map(x=>x*4));
+// 表示の枠：導線の向きを横に
+const P0=D.big.map(b=>phys(b.reduce((s,v)=>s.map((x,i)=>x+v[i]),[0,0,0,0,0,0]).map(x=>x/4)));
+const n3=v=>{const l=Math.hypot(...v);return v.map(x=>x/l);};
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],sub=(a,b)=>a.map((x,i)=>x-b[i]),addv=(a,b)=>a.map((x,i)=>x+b[i]),mulv=(a,k)=>a.map(x=>x*k);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const X=n3(sub(P0[P0.length-1],P0[0]));let Yt=sub([0,0,1],mulv(X,X[2]));if(Math.hypot(...Yt)<1e-6)Yt=sub([0,1,0],mulv(X,X[1]));const Y=n3(Yt),Z=cross(X,Y);
+const CEN=mulv(P0.reduce((s,p)=>addv(s,p),[0,0,0]),1/P0.length);
+const loc=p=>{const q=sub(p,CEN);return[dot(q,X),dot(q,Y),dot(q,Z)];};
+// 辺を軸に半回転
+function rotAbout(p,a,b,th){const k=n3(sub(b,a));const v=sub(p,a);const c=Math.cos(th),s=Math.sin(th);
+  const r=addv(addv(mulv(v,c),mulv(cross(k,v),s)),mulv(k,dot(k,v)*(1-c)));return addv(r,a);}
+const PH=[[3,"h1"],[3,"h2"],[4,"h3"],[16,"fold"],[12,"wire"]];const TOT=PH.reduce((s,p)=>s+p[0],0);
+const ease=x=>x<0?0:x>1?1:x*x*(3-2*x);
+function draw(t){let i=0,u=t;while(i<PH.length-1&&u>=PH[i][0]){u-=PH[i][0];i++;}const sc=PH[i][1],f=Math.min(1,u/PH[i][0]);
+  ctx.fillStyle=css("--panel");ctx.fillRect(0,0,1000,1000);
+  let yaw,pitch,S,focus;
+  if(sc.startsWith("h")){yaw=-0.6+0.5*Math.sin(t*0.5);pitch=0.35;S=70;focus=loc(phys(T0.reduce((s,v)=>s.map((x,i)=>x+v[i]),[0,0,0,0,0,0]).map(x=>x/4)));}
+  else if(sc==="fold"){const n=AT.length,seg=PH[3][0]/(n-1),x=Math.min(n-2+0.999,u/seg);const k0=Math.floor(x),fr=ease((x-k0-0.75)/0.25);
+    const c=k=>loc(P0[Math.min(k,n-1)]);const ca=addv(c(k0),c(k0+1)),cb=addv(c(k0+1),c(k0+2));focus=mulv(addv(mulv(ca,1-fr),mulv(cb,fr)),0.5);
+    yaw=-0.35+0.25*Math.sin(t*0.3);pitch=0.45;S=36;}
+  else{yaw=-0.25+0.35*Math.sin(t*0.25);pitch=0.45+0.12*Math.sin(t*0.37);S=21;focus=[0,0,0];}
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const scr=p=>{const q=sub(p,focus);const x=q[0]*cy+q[2]*sy,z0=-q[0]*sy+q[2]*cy;const y=q[1]*cp-z0*sp,z=q[1]*sp+z0*cp;return[500+S*x,520-S*y,z];};
+  const faces=[],dots=[];let st="",ph="";
+  const addTet=(T,col,al,tf)=>{for(const t of T){const P=t.map(p=>{let q=loc(phys(p));if(tf)q=tf(q);return scr(q);});
+    for(const [a,b,c] of [[0,1,2],[0,1,3],[0,2,3],[1,2,3]])faces.push({P:[P[a],P[b],P[c]],z:(P[a][2]+P[b][2]+P[c][2])/3,col,al});}};
+  const cols=[css("--cu1"),css("--cu2")];
+  if(sc.startsWith("h")){const m={h1:1,h2:2,h3:3}[sc];const T=gasket(T0,m);addTet(T,m===1?css("--h"):cols[0],0.55);
+    ph={h1:"1 段：水素の正四面体",h2:"2 段：角に 4 つ",h3:"3 段：銅原子"}[sc];st="小さな正四面体 "+T.length+"、点 "+ptsOf(T).size;
+    ptsOf(T).forEach(p=>{const q=scr(loc(phys(p)));dots.push({q,z:q[2],col:css("--ink"),r:4});});}
+  if(sc==="fold"){const n=AT.length;const seg=PH[3][0]/(n-1);const kf=Math.min(n-2,Math.floor(u/seg));const g=ease((u-kf*seg)/(seg*0.75));
+    for(let k=0;k<=kf;k++)addTet(AT[k],cols[k%2],0.42);
+    const sh=D.big[kf].filter(a=>D.big[kf+1].some(b=>key(a)===key(b)));const A=loc(phys(sh[0])),B=loc(phys(sh[1]));
+    addTet(AT[kf],cols[(kf+1)%2],0.55,q=>rotAbout(q,A,B,Math.PI*g));
+    const pa=scr(A),pb=scr(B);if(g<1)faces.push({line:[pa,pb],z:Math.max(pa[2],pb[2])+0.01});
+    if(g>=1){PS[kf+1].forEach((p,kk)=>{const q=scr(loc(phys(p)));const shared=PS[kf].has(kk);dots.push({q,z:q[2],col:shared?css("--shared"):css("--new"),r:shared?7:5});});}
+    ph="辺を軸に倒して隣に置く（"+(kf+2)+" 個目）";st=g>=1?"分け合う点 5、新しい点 29":"半回転 "+Math.round(180*g)+"°";}
+  if(sc==="wire"){AT.forEach((T,k)=>addTet(T,cols[k%2],0.4));const seen=new Set();
+    PS.forEach((M,k)=>M.forEach((p,kk)=>{const q=scr(loc(phys(p)));const shared=(k>0&&PS[k-1].has(kk))||(k<PS.length-1&&PS[k+1].has(kk));if(seen.has(kk))return;seen.add(kk);dots.push({q,z:q[2],col:shared?css("--shared"):css("--new"),r:shared?6:4});}));
+    ph="銅原子 "+AT.length+" 個の導線";st="点 "+seen.size+" ＝ 34 ＋ 29 × "+(AT.length-1);}
+  const items=[...faces.sort((a,b)=>a.z-b.z),...dots.sort((a,b)=>a.z-b.z)];
+  for(const it of items){
+    if(it.line){ctx.beginPath();ctx.moveTo(it.line[0][0],it.line[0][1]);ctx.lineTo(it.line[1][0],it.line[1][1]);ctx.lineWidth=6;ctx.strokeStyle=css("--ink");ctx.stroke();continue;}
+    if(it.q){ctx.beginPath();ctx.arc(it.q[0],it.q[1],it.r,0,7);ctx.fillStyle=it.col;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=css("--panel");ctx.stroke();continue;}
+    ctx.beginPath();ctx.moveTo(it.P[0][0],it.P[0][1]);ctx.lineTo(it.P[1][0],it.P[1][1]);ctx.lineTo(it.P[2][0],it.P[2][1]);ctx.closePath();
+    ctx.globalAlpha=it.al;ctx.fillStyle=it.col;ctx.fill();ctx.globalAlpha=0.9;ctx.lineWidth=1.2;ctx.strokeStyle=css("--ink");ctx.stroke();ctx.globalAlpha=1;}
+  document.getElementById("ph").textContent=ph;document.getElementById("st").textContent=st;}
+const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let T=0,playing=!still,prev=null;
+function loop(now){if(prev===null)prev=now;const dt=(now-prev)/1000;prev=now;if(playing){T=(T+dt*(+document.getElementById("speed").value)/4)%TOT;draw(T);}requestAnimationFrame(loop);}
+document.getElementById("play").textContent=playing?"停止":"再生";
+document.getElementById("play").onclick=e=>{playing=!playing;e.target.textContent=playing?"停止":"再生";};
+document.getElementById("reset").onclick=()=>{T=0;draw(T);};
+draw(still?TOT-3:0);requestAnimationFrame(loop);
+</script>
